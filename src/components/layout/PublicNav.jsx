@@ -90,10 +90,10 @@ export default function PublicNav() {
         ))}
       </div>
       <div style={{ width: 180, textAlign: "right", display: "flex", gap: 10, justifyContent: "flex-end", flexShrink: 0 }}>
-        <button className="btn-outline" onClick={() => navigate("/login")} style={{ padding: "9px 16px", background: "transparent", color: C.white, border: "1px solid rgba(255,255,255,0.25)", borderRadius: 0, fontWeight: 600, fontSize: 11, cursor: "pointer", fontFamily: body, whiteSpace: "nowrap" }}>
+        <button className="btn-outline" onClick={() => navigate("/login")} style={{ width: 80, padding: "9px 0", background: "transparent", color: C.white, border: "1px solid rgba(255,255,255,0.25)", borderRadius: 0, fontWeight: 600, fontSize: 11, cursor: "pointer", fontFamily: body, whiteSpace: "nowrap" }}>
           Sign In
         </button>
-        <button className="btn-gold" onClick={() => navigate("/signup")} style={{ padding: "9px 16px", background: C.goldBright, color: C.maroonDeep, border: "none", borderRadius: 0, fontWeight: 700, fontSize: 11, cursor: "pointer", fontFamily: body, whiteSpace: "nowrap" }}>
+        <button className="btn-gold" onClick={() => navigate("/signup")} style={{ width: 80, padding: "9px 0", background: C.goldBright, color: C.maroonDeep, border: "none", borderRadius: 0, fontWeight: 700, fontSize: 11, cursor: "pointer", fontFamily: body, whiteSpace: "nowrap" }}>
           Join Now
         </button>
       </div>
