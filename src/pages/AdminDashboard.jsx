@@ -103,9 +103,9 @@ function MembersTab({ members, addMember, updateMember }) {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+      <div className="admin-member-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <h2 style={{ fontFamily: display, fontSize: 20, color: C.textDark, margin: 0, letterSpacing: 0.5 }}>Member Directory</h2>
-        <div style={{ display: "flex", gap: 10 }}>
+        <div className="admin-member-actions" style={{ display: "flex", gap: 10 }}>
           <button onClick={exportCSV} style={{ padding: "9px 18px", border: `1px solid ${C.border}`, background: C.white, borderRadius: 0, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: body, color: C.textMid }}>
             ↓ Export CSV
           </button>
@@ -116,7 +116,7 @@ function MembersTab({ members, addMember, updateMember }) {
       </div>
 
       {/* Filters */}
-      <div style={{ display: "flex", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
+      <div className="admin-filter-row" style={{ display: "flex", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
         <input style={{ ...inputStyle, flex: 1, minWidth: 200 }} value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name, email, suburb…"/>
         <select style={{ ...inputStyle, width: "auto" }} value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
           <option value="all">All Statuses</option>
@@ -135,7 +135,7 @@ function MembersTab({ members, addMember, updateMember }) {
       </div>
 
       {/* Table */}
-      <div style={{ background: C.white, border: `1px solid ${C.border}`, overflow: "auto" }}>
+      <div className="table-scroll-container" style={{ background: C.white, border: `1px solid ${C.border}`, overflow: "auto" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, fontFamily: body }}>
           <thead>
             <tr style={{ background: C.cream, borderBottom: `1px solid ${C.border}` }}>
@@ -454,7 +454,7 @@ function EventsTab({ events, addEvent, updateEvent, deleteEvent }) {
         </button>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 20 }}>
+      <div className="events-layout" style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 20 }}>
         <div style={{ background: C.white, border: `1px solid ${C.border}`, padding: 20 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
             <button onClick={prevMonth} style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 0, padding: "6px 14px", cursor: "pointer", fontFamily: body, fontSize: 13 }}>←</button>
@@ -785,7 +785,7 @@ export default function AdminDashboard() {
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ color: C.goldBright }}><SunIcon s={20}/></span>
           <span style={{ color: C.white, fontWeight: 700, fontSize: 14, fontFamily: display, letterSpacing: 1 }}>Macedonian Community of Brisbane</span>
-          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", marginLeft: 8, padding: "3px 10px", background: "rgba(255,255,255,0.08)", fontWeight: 600, fontFamily: body }}>Committee Admin</span>
+          <span className="admin-top-nav-title" style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", marginLeft: 8, padding: "3px 10px", background: "rgba(255,255,255,0.08)", fontWeight: 600, fontFamily: body }}>Committee Admin</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           <button onClick={() => navigate("/")} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.55)", fontSize: 12, fontFamily: body, fontWeight: 500 }}>Home</button>
@@ -796,7 +796,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Tab bar */}
-      <div style={{ background: C.white, borderBottom: `1px solid ${C.border}`, padding: "0 24px", display: "flex", gap: 0, position: "sticky", top: 88, zIndex: 90 }}>
+      <div className="admin-tab-bar" style={{ background: C.white, borderBottom: `1px solid ${C.border}`, padding: "0 24px", display: "flex", gap: 0, position: "sticky", top: 88, zIndex: 90 }}>
         {TABS.map(t => (
           <button key={t} onClick={() => setTab(t)} style={{
             padding: "14px 20px", border: "none", background: "none", cursor: "pointer", fontFamily: body,
@@ -809,7 +809,7 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: 28 }}>
+      <div className="admin-content" style={{ maxWidth: 1200, margin: "0 auto", padding: 28 }}>
         {tab === "Members" && <MembersTab members={members} addMember={addMember} updateMember={updateMember}/>}
         {tab === "Analytics" && <AnalyticsTab members={members}/>}
         {tab === "Events" && <EventsTab events={events} addEvent={addEvent} updateEvent={updateEvent} deleteEvent={deleteEvent}/>}

@@ -43,7 +43,7 @@ export default function MembershipCTA() {
         <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 520, margin: "-12px auto 36px", fontFamily: body }}>
           Get access to exclusive events, members-only content, hall hire discounts, and stay connected all year round.
         </p>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20, maxWidth: 800, margin: "0 auto 36px" }}>
+        <div className="membership-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20, maxWidth: 800, margin: "0 auto 36px" }}>
           {tiers.map((tier, i) => (
             <div key={i} style={{
               background: tier.popular ? "rgba(234,191,61,0.12)" : "rgba(255,255,255,0.07)",

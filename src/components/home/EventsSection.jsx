@@ -14,7 +14,7 @@ export default function EventsSection() {
       <div id="events"/>
       <Section bg={C.white}>
         <SectionTitle sub="What's Coming Up" center>Upcoming Events</SectionTitle>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
+        <div className="events-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
           {upcomingEvents.map((e, i) => (
             <div key={e.id || i} style={{
               padding: "20px", borderRadius: 0, border: `1px solid ${C.border}`,

@@ -53,7 +53,7 @@ function OverviewSection({ member, events, rsvps, setSection }) {
   return (
     <div>
       {/* Welcome banner */}
-      <div style={{ background: `linear-gradient(135deg, ${C.maroon}, ${C.maroonDeep})`, padding: "28px 32px", marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div className="welcome-banner" style={{ background: `linear-gradient(135deg, ${C.maroon}, ${C.maroonDeep})`, padding: "28px 32px", marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
           <div style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", fontFamily: body, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Welcome back</div>
           <h2 style={{ fontFamily: display, fontSize: 26, color: C.white, letterSpacing: 1, margin: "0 0 10px" }}>{member.fullName}</h2>
@@ -72,7 +72,7 @@ function OverviewSection({ member, events, rsvps, setSection }) {
       </div>
 
       {/* Quick stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 24 }}>
+      <div className="stats-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 24 }}>
         {[
           { label: "My RSVPs", value: myRsvps.length, color: C.maroon },
           { label: "Family Members", value: member.familySize, color: C.green },
@@ -133,7 +133,7 @@ function ProfileSection({ member, updateMember }) {
         : <button onClick={() => setEditing(true)} style={{ padding: "7px 16px", border: `1px solid ${C.border}`, background: "transparent", borderRadius: 0, fontSize: 12, cursor: "pointer", fontFamily: body, color: C.textDark }}>Edit Profile</button>
     }>
       {saved && <div style={{ background: C.greenLight, color: C.green, padding: "10px 14px", fontSize: 13, fontFamily: body, marginBottom: 16 }}>Profile updated successfully</div>}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 24px" }}>
+      <div className="profile-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 24px" }}>
         {[
           { label: "First Name", key: "firstName" },
           { label: "Last Name", key: "lastName" },
@@ -190,7 +190,7 @@ function MembershipSection({ member, updateMember }) {
 
   return (
     <SectionCard title="My Membership">
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
+      <div className="membership-detail-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
         <div style={{ border: `2px solid ${C.maroon}`, padding: "20px 24px" }}>
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, color: C.textLight, fontFamily: body, textTransform: "uppercase", marginBottom: 8 }}>Current Plan</div>
           <div style={{ fontFamily: display, fontSize: 22, color: C.maroon, marginBottom: 6 }}>{member.planType}</div>
@@ -266,7 +266,7 @@ function CalendarSection({ events, rsvps, toggleRsvp }) {
 
   return (
     <SectionCard title="Community Calendar">
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 24 }}>
+      <div className="calendar-layout" style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 24 }}>
         {/* Calendar grid */}
         <div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
@@ -425,7 +425,7 @@ function HallHireSection({ blockedDates, addHallHireBooking, member, hallHireBoo
         <strong style={{ color: C.textDark }}> Members receive a 20% discount.</strong>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+      <div className="hall-hire-layout" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
         {/* Calendar */}
         <div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
@@ -520,7 +520,7 @@ function MyBookingsSection({ hallHireBookings, member }) {
       {myBookings.length === 0
         ? <p style={{ color: C.textLight, fontSize: 13, fontFamily: body }}>No bookings submitted yet.</p>
         : myBookings.map(b => (
-          <div key={b.id} style={{ border: `1px solid ${C.border}`, padding: "16px 20px", marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div key={b.id} className="my-booking-row" style={{ border: `1px solid ${C.border}`, padding: "16px 20px", marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
               <div style={{ fontSize: 14, fontWeight: 600, color: C.textDark, fontFamily: body, marginBottom: 4 }}>{b.eventType}</div>
               <div style={{ fontSize: 12, color: C.textLight, fontFamily: body }}>{b.dateDisplay} · {b.expectedGuests} guests</div>
@@ -570,7 +570,7 @@ export default function MemberDashboard() {
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ color: C.goldBright }}><SunIcon s={20}/></span>
           <span style={{ color: C.white, fontWeight: 700, fontSize: 14, fontFamily: display, letterSpacing: 1 }}>Macedonian Community of Brisbane</span>
-          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", marginLeft: 8, padding: "3px 10px", background: "rgba(255,255,255,0.08)", fontWeight: 600, fontFamily: body }}>
+          <span className="member-top-nav-subtitle" style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", marginLeft: 8, padding: "3px 10px", background: "rgba(255,255,255,0.08)", fontWeight: 600, fontFamily: body }}>
             Member Portal
           </span>
         </div>
@@ -585,9 +585,9 @@ export default function MemberDashboard() {
         </div>
       </div>
 
-      <div style={{ display: "flex" }}>
+      <div className="member-dashboard-layout" style={{ display: "flex" }}>
         {/* Sidebar */}
-        <div style={{ width: 210, background: C.white, borderRight: `1px solid ${C.border}`, padding: "16px 10px", minHeight: "calc(100vh - 88px)", flexShrink: 0, position: "sticky", top: 88 }}>
+        <div className="member-dashboard-sidebar" style={{ width: 210, background: C.white, borderRight: `1px solid ${C.border}`, padding: "16px 10px", minHeight: "calc(100vh - 88px)", flexShrink: 0, position: "sticky", top: 88 }}>
           {NAV_ITEMS.map(({ key, icon, label }) => {
             const active = section === key;
             return (
@@ -605,7 +605,7 @@ export default function MemberDashboard() {
         </div>
 
         {/* Content */}
-        <div style={{ flex: 1, padding: 28, maxWidth: 900 }}>
+        <div className="member-dashboard-content" style={{ flex: 1, padding: 28, maxWidth: 900 }}>
           {section === "overview" && <OverviewSection member={member} events={events} rsvps={rsvps} setSection={setSection}/>}
           {section === "profile" && <ProfileSection member={member} updateMember={updateMember}/>}
           {section === "membership" && <MembershipSection member={member} updateMember={updateMember}/>}

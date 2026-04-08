@@ -35,7 +35,7 @@ export default function HeroSection() {
     >
       <PublicNav/>
       <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ maxWidth: 960, padding: "0 24px", textAlign: "center", position: "relative", zIndex: 2 }}>
+        <div className="hero-inner" style={{ maxWidth: 960, padding: "0 24px", textAlign: "center", position: "relative", zIndex: 2 }}>
           <div style={{
             display: "inline-block", padding: "5px 18px", borderRadius: 0, fontSize: 10, fontWeight: 700,
             background: "rgba(216,167,55,0.15)", color: C.goldBright, letterSpacing: 2.5,
@@ -43,7 +43,7 @@ export default function HeroSection() {
           }}>
             Macedonian Community of Brisbane
           </div>
-          <h1 style={{
+          <h1 className="hero-h1" style={{
             color: C.white, fontSize: 46, fontWeight: 700, lineHeight: 1.15,
             margin: "0 auto 22px", maxWidth: 680, fontFamily: display, letterSpacing: 2,
           }}>
@@ -55,7 +55,7 @@ export default function HeroSection() {
           }}>
             Preserving our Macedonian Orthodox traditions while building a vibrant, connected community for families across Brisbane.
           </p>
-          <div style={{ display: "flex", gap: 14, justifyContent: "center" }}>
+          <div className="hero-buttons-row" style={{ display: "flex", gap: 14, justifyContent: "center" }}>
             <button
               className="btn-gold"
               onClick={() => navigate("/signup")}
@@ -82,7 +82,7 @@ export default function HeroSection() {
         </div>
       </div>
       <div style={{ background: "rgba(0,0,0,0.3)", borderTop: "1px solid rgba(255,255,255,0.1)", position: "relative", zIndex: 2 }}>
-        <div style={{ maxWidth: 960, margin: "0 auto", display: "flex", justifyContent: "space-between", padding: "28px 48px", maxWidth: 800, margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
+        <div className="hero-stats-row" style={{ maxWidth: 800, margin: "0 auto", display: "flex", justifyContent: "space-between", padding: "28px 48px", width: "100%", boxSizing: "border-box" }}>
           {[["47+", "Member Families"], ["120+", "Community Members"], ["50+", "Events Per Year"]].map(([n, l], i) => (
             <div key={i} style={{ textAlign: "center" }}>
               <div style={{ fontSize: 28, fontWeight: 700, color: C.goldBright, fontFamily: display, letterSpacing: 1 }}>{n}</div>

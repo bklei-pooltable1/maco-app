@@ -15,7 +15,7 @@ export default function ProgramsSection() {
   return (
     <Section bg={C.cream}>
       <SectionTitle sub="Programs & Events" center>What We Offer</SectionTitle>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 24, marginTop: 8 }}>
+      <div className="programs-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 24, marginTop: 8 }}>
         {programs.map((p, i) => (
           <div key={i} style={{
             borderRadius: "16px 16px 0 0",

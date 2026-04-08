@@ -70,7 +70,7 @@ function Step1({ data, onChange, onNext }) {
     <div>
       <h2 style={{ fontFamily: display, fontSize: 22, color: C.textDark, marginBottom: 6, letterSpacing: 1 }}>Account Details</h2>
       <p style={{ fontSize: 13, color: C.textMid, marginBottom: 28, fontFamily: body }}>Set up your login credentials and personal information.</p>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+      <div className="step-grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
         <div>
           <label style={labelStyle}>First Name *</label>
           <input style={{ ...inputStyle, borderColor: errors.firstName ? C.red : C.border }} value={data.firstName} onChange={e => onChange("firstName", e.target.value)} placeholder="Marija"/>
@@ -102,7 +102,7 @@ function Step1({ data, onChange, onNext }) {
           {errors.dateOfBirth && <span style={{ fontSize: 11, color: C.red, fontFamily: body }}>{errors.dateOfBirth}</span>}
         </div>
       </div>
-      <div style={{ marginTop: 28, textAlign: "right" }}>
+      <div className="signup-step-nav" style={{ marginTop: 28, textAlign: "right", display: "flex", justifyContent: "flex-end" }}>
         <button className="btn-gold" onClick={() => validate() && onNext()} style={{ padding: "12px 32px", background: C.goldBright, color: C.maroonDeep, border: "none", borderRadius: 0, fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: body }}>
           Continue →
         </button>
@@ -163,7 +163,7 @@ function Step2({ data, onChange, onNext, onBack }) {
         <span style={{ fontSize: 12, color: C.textLight, marginLeft: 12 }}>({totalSize === 1 ? "Individual" : totalSize === 2 ? "Couple" : `Family`} plan)</span>
       </div>
 
-      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 28 }}>
+      <div className="signup-step-nav" style={{ display: "flex", justifyContent: "space-between", marginTop: 28 }}>
         <button onClick={onBack} style={{ padding: "12px 28px", background: "transparent", border: `1px solid ${C.border}`, borderRadius: 0, fontWeight: 600, fontSize: 13, cursor: "pointer", fontFamily: body, color: C.textMid }}>
           ← Back
         </button>
@@ -256,7 +256,7 @@ function Step3({ data, onChange, familySize, onNext, onBack }) {
         You can cancel or change your plan at any time from your member portal.
       </div>
 
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
+      <div className="signup-step-nav" style={{ display: "flex", justifyContent: "space-between" }}>
         <button onClick={onBack} style={{ padding: "12px 28px", background: "transparent", border: `1px solid ${C.border}`, borderRadius: 0, fontWeight: 600, fontSize: 13, cursor: "pointer", fontFamily: body, color: C.textMid }}>
           ← Back
         </button>
@@ -355,7 +355,7 @@ function Step4({ data, onNext, onBack, pricing }) {
         🔒 Your payment is secured with 256-bit SSL encryption
       </div>
 
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
+      <div className="signup-step-nav" style={{ display: "flex", justifyContent: "space-between" }}>
         <button onClick={onBack} disabled={processing} style={{ padding: "12px 28px", background: "transparent", border: `1px solid ${C.border}`, borderRadius: 0, fontWeight: 600, fontSize: 13, cursor: "pointer", fontFamily: body, color: C.textMid, opacity: processing ? 0.5 : 1 }}>
           ← Back
         </button>
@@ -447,10 +447,10 @@ export default function SignUp() {
   return (
     <div style={{ minHeight: "100vh", background: C.cream, paddingTop: 60 }}>
       {/* Header */}
-      <div style={{ background: C.maroon, padding: "18px 48px", display: "flex", alignItems: "center", gap: 12, position: "fixed", top: 36, left: 0, right: 0, zIndex: 100, height: 52, boxSizing: "border-box", borderBottom: `2px solid ${C.goldBright}` }}>
+      <div className="signup-header" style={{ background: C.maroon, padding: "18px 48px", display: "flex", alignItems: "center", gap: 12, position: "fixed", top: 36, left: 0, right: 0, zIndex: 100, height: 52, boxSizing: "border-box", borderBottom: `2px solid ${C.goldBright}` }}>
         <span style={{ color: C.goldBright }}><SunIcon s={20}/></span>
         <span style={{ color: C.white, fontWeight: 700, fontSize: 14, fontFamily: display, letterSpacing: 1 }}>Macedonian Community of Brisbane</span>
-        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginLeft: 8, fontFamily: body }}>New Member Registration</span>
+        <span className="signup-header-title" style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginLeft: 8, fontFamily: body }}>New Member Registration</span>
         <div style={{ marginLeft: "auto" }}>
           <button onClick={() => navigate("/")} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.5)", cursor: "pointer", fontSize: 12, fontFamily: body, fontWeight: 500 }}>
             ← Back to Home
@@ -458,8 +458,8 @@ export default function SignUp() {
         </div>
       </div>
 
-      <div style={{ maxWidth: 600, margin: "80px auto 60px", padding: "0 24px" }}>
-        <div style={{ background: C.white, border: `1px solid ${C.border}`, padding: "36px 40px" }}>
+      <div className="signup-body" style={{ maxWidth: 600, margin: "80px auto 60px", padding: "0 24px" }}>
+        <div className="signup-card" style={{ background: C.white, border: `1px solid ${C.border}`, padding: "36px 40px" }}>
           <StepIndicator current={step}/>
 
           {step === 0 && <Step1 data={data} onChange={onChange} onNext={() => setStep(1)}/>}

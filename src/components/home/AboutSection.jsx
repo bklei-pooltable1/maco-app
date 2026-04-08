@@ -7,7 +7,7 @@ export default function AboutSection() {
   return (
     <Section bg={C.white}>
       <div id="about" style={{ scrollMarginTop: 60 }}/>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 48, alignItems: "center" }}>
+      <div className="about-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 48, alignItems: "center" }}>
         <div>
           <SectionTitle sub="About Us">Our Community</SectionTitle>
           <p style={{ fontSize: 14, color: C.textMid, lineHeight: 1.8, margin: "0 0 16px", fontFamily: body }}>

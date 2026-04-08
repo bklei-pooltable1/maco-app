@@ -10,4 +10,231 @@ html, body {
   margin: 0;
   padding: 0;
   font-family: 'Montserrat', -apple-system, sans-serif;
+  overflow-x: hidden;
+}
+
+/* ─── Mobile Responsive Styles (max-width: 768px) ──────────────────────────── */
+@media (max-width: 768px) {
+
+  /* === Section Wrapper === */
+  .section-wrapper {
+    padding: 48px 16px !important;
+  }
+
+  /* === Public Nav === */
+  .public-nav-container {
+    padding: 14px 16px !important;
+  }
+  .nav-desktop-links {
+    display: none !important;
+  }
+  .nav-auth-buttons {
+    display: none !important;
+  }
+  .hamburger-btn {
+    display: flex !important;
+  }
+
+  /* === Hero === */
+  .hero-inner {
+    padding: 0 16px !important;
+  }
+  .hero-h1 {
+    font-size: 28px !important;
+    letter-spacing: 1px !important;
+    max-width: 100% !important;
+  }
+  .hero-buttons-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+    padding: 0 4px !important;
+  }
+  .hero-buttons-row button {
+    width: 100% !important;
+    min-height: 48px !important;
+    padding: 14px 20px !important;
+  }
+  .hero-stats-row {
+    flex-direction: column !important;
+    gap: 20px !important;
+    padding: 24px 16px !important;
+    align-items: center !important;
+  }
+
+  /* === About Section === */
+  .about-grid {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+
+  /* === Programs Grid === */
+  .programs-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* === Events Grid === */
+  .events-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* === Membership Pricing Grid === */
+  .membership-grid {
+    grid-template-columns: 1fr !important;
+    max-width: 100% !important;
+  }
+
+  /* === Footer === */
+  .footer-grid {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+    text-align: center !important;
+  }
+  .footer-contact-item {
+    justify-content: center !important;
+  }
+
+  /* === Section (Section.jsx wrapper) === */
+  .section-outer {
+    padding: 48px 16px !important;
+  }
+
+  /* ─── SignUp Flow ──────────────────────────────────────────────────────── */
+  .signup-header {
+    padding: 14px 16px !important;
+  }
+  .signup-header-title {
+    display: none !important;
+  }
+  .signup-body {
+    padding: 0 12px !important;
+    margin: 80px auto 40px !important;
+  }
+  .signup-card {
+    padding: 24px 16px !important;
+  }
+  .step-grid-2col {
+    grid-template-columns: 1fr !important;
+  }
+  .signup-step-nav {
+    flex-direction: column-reverse !important;
+    gap: 10px !important;
+  }
+  .signup-step-nav button {
+    width: 100% !important;
+    min-height: 48px !important;
+  }
+
+  /* ─── Member Dashboard ─────────────────────────────────────────────────── */
+  .member-dashboard-layout {
+    flex-direction: column !important;
+  }
+  .member-dashboard-sidebar {
+    width: 100% !important;
+    min-height: auto !important;
+    position: static !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    border-right: none !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    padding: 6px 8px !important;
+    display: flex !important;
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+    scrollbar-width: none !important;
+  }
+  .member-dashboard-sidebar::-webkit-scrollbar {
+    display: none;
+  }
+  .member-dashboard-sidebar button {
+    flex-shrink: 0 !important;
+    width: auto !important;
+    padding: 8px 14px !important;
+    font-size: 12px !important;
+    border-radius: 4px !important;
+    white-space: nowrap !important;
+  }
+  .member-dashboard-content {
+    padding: 16px !important;
+    min-width: 0 !important;
+  }
+  .member-top-nav-subtitle {
+    display: none !important;
+  }
+  .welcome-banner {
+    flex-direction: column !important;
+    gap: 16px !important;
+    padding: 20px 16px !important;
+  }
+  .stats-grid-3 {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  .calendar-layout {
+    grid-template-columns: 1fr !important;
+  }
+  .hall-hire-layout {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  .profile-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .membership-detail-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  .my-booking-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+
+  /* ─── Admin Dashboard ──────────────────────────────────────────────────── */
+  .admin-tab-bar {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding: 0 8px !important;
+    white-space: nowrap !important;
+    scrollbar-width: none !important;
+  }
+  .admin-tab-bar::-webkit-scrollbar {
+    display: none;
+  }
+  .admin-content {
+    padding: 16px !important;
+  }
+  .admin-top-nav-title {
+    display: none !important;
+  }
+  .table-scroll-container {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  .events-layout {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  .admin-member-header {
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+  }
+  .admin-member-actions {
+    flex-wrap: wrap !important;
+  }
+  .admin-filter-row {
+    flex-direction: column !important;
+  }
+  .admin-filter-row input,
+  .admin-filter-row select {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* ─── General ──────────────────────────────────────────────────────────── */
+  .tap-target {
+    min-height: 44px !important;
+    min-width: 44px !important;
+  }
 }
