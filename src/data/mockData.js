@@ -261,6 +261,7 @@ export const INITIAL_EVENTS = [
     category: "Holiday",
     description: "Solemn Good Friday service commemorating the crucifixion of Christ. Evening procession to follow.",
     location: "St. Naum Ohridski Church, 52 Stevenson St, Bowen Hills",
+    membersOnly: true,
   },
   {
     id: "ev5",
@@ -309,6 +310,7 @@ export const INITIAL_EVENTS = [
     category: "Cultural Event",
     description: "Our flagship cultural evening featuring traditional Macedonian music, dance performances, authentic cuisine and community awards.",
     location: "Macedonian Community Hall, Bowen Hills",
+    membersOnly: true,
   },
 ];
 
@@ -343,6 +345,13 @@ export const INITIAL_NOTICES = [
 
 // ─── HALL HIRE BOOKINGS ──────────────────────────────────────────────────────
 
+// Hall hire slot types: "morning" (9am–1pm), "afternoon" (1pm–5pm), "fullday" (9am–5pm)
+export const HALL_SLOTS = {
+  morning:   { label: "Morning Slot (9am – 1pm)",   start: "09:00", end: "13:00", hours: 4 },
+  afternoon: { label: "Afternoon Slot (1pm – 5pm)", start: "13:00", end: "17:00", hours: 4 },
+  fullday:   { label: "Full Day (9am – 5pm)",        start: "09:00", end: "17:00", hours: 8 },
+};
+
 export const INITIAL_HALL_HIRE = [
   {
     id: "hh1",
@@ -351,9 +360,10 @@ export const INITIAL_HALL_HIRE = [
     phone: "0411 222 333",
     date: "2026-05-10",
     dateDisplay: "May 10, 2026",
+    slot: "fullday",
     eventType: "Wedding Reception",
     expectedGuests: 80,
-    notes: "We require the hall from 5:00 PM. We will need tables arranged in a banquet style and would appreciate access to the kitchen. We are expecting family from interstate.",
+    notes: "We will need tables arranged in a banquet style and would appreciate access to the kitchen. We are expecting family from interstate.",
     status: "pending",
     submittedAt: "2026-04-01",
     memberId: "m5",
@@ -365,6 +375,7 @@ export const INITIAL_HALL_HIRE = [
     phone: "0422 333 444",
     date: "2026-04-19",
     dateDisplay: "Apr 19, 2026",
+    slot: "afternoon",
     eventType: "Birthday Celebration",
     expectedGuests: 40,
     notes: "60th birthday celebration for Baba Marta. We need the hall from 3:00 PM and would like to use the sound system.",

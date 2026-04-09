@@ -47,6 +47,9 @@ export function DemoProvider({ children }) {
     setNotices((prev) => [newNotice, ...prev]);
     return newNotice;
   };
+  const updateNotice = (id, updates) => {
+    setNotices((prev) => prev.map((n) => (n.id === id ? { ...n, ...updates } : n)));
+  };
   const deleteNotice = (id) => setNotices((prev) => prev.filter((n) => n.id !== id));
   const togglePinNotice = (id) => {
     setNotices((prev) => prev.map((n) => (n.id === id ? { ...n, pinned: !n.pinned } : n)));
@@ -72,19 +75,34 @@ export function DemoProvider({ children }) {
     setRsvps((prev) => ({ ...prev, [eventId]: !prev[eventId] }));
   };
 
-  // Blocked hall hire dates (approved bookings)
-  const blockedDates = hallHireBookings
+  // Half-day slot blocking: { date: ["morning"] | ["afternoon"] | ["morning","afternoon"] }
+  // A date is "fully blocked" when both morning+afternoon are taken (or a fullday booking exists)
+  const blockedSlots = {};
+  hallHireBookings
     .filter((b) => b.status === "approved")
-    .map((b) => b.date);
+    .forEach((b) => {
+      const slot = b.slot || "fullday";
+      if (!blockedSlots[b.date]) blockedSlots[b.date] = [];
+      if (slot === "fullday") {
+        blockedSlots[b.date] = ["morning", "afternoon"];
+      } else if (!blockedSlots[b.date].includes(slot)) {
+        blockedSlots[b.date].push(slot);
+      }
+    });
+
+  // Fully blocked = both slots taken
+  const blockedDates = Object.keys(blockedSlots).filter(
+    (d) => blockedSlots[d].includes("morning") && blockedSlots[d].includes("afternoon")
+  );
 
   return (
     <DemoContext.Provider value={{
       role, setRole,
       members, addMember, updateMember, deleteMember,
       events, addEvent, updateEvent, deleteEvent,
-      notices, addNotice, deleteNotice, togglePinNotice,
+      notices, addNotice, updateNotice, deleteNotice, togglePinNotice,
       hallHireBookings, addHallHireBooking, updateBookingStatus,
-      blockedDates,
+      blockedDates, blockedSlots,
       currentMember, setCurrentMember,
       rsvps, toggleRsvp,
     }}>

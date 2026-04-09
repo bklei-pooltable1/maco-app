@@ -572,14 +572,32 @@ function EventsTab({ events, addEvent, updateEvent, deleteEvent }) {
 
 // ─── Notice Board Tab ─────────────────────────────────────────────────────────
 
-function NoticeBoardTab({ notices, addNotice, deleteNotice, togglePinNotice }) {
+function NoticeBoardTab({ notices, addNotice, updateNotice, deleteNotice, togglePinNotice }) {
   const [showForm, setShowForm] = useState(false);
+  const [editingNotice, setEditingNotice] = useState(null); // notice being edited
   const [form, setForm] = useState({ title: "", body: "", author: "Committee", pinned: false });
 
-  const handlePost = () => {
+  const openNew = () => {
+    setEditingNotice(null);
+    setForm({ title: "", body: "", author: "Committee", pinned: false });
+    setShowForm(true);
+  };
+
+  const openEdit = (n) => {
+    setEditingNotice(n);
+    setForm({ title: n.title, body: n.body, author: n.author, pinned: n.pinned });
+    setShowForm(true);
+  };
+
+  const handleSave = () => {
     if (!form.title || !form.body) return;
-    addNotice(form);
+    if (editingNotice) {
+      updateNotice(editingNotice.id, form);
+    } else {
+      addNotice(form);
+    }
     setShowForm(false);
+    setEditingNotice(null);
     setForm({ title: "", body: "", author: "Committee", pinned: false });
   };
 
@@ -589,7 +607,7 @@ function NoticeBoardTab({ notices, addNotice, deleteNotice, togglePinNotice }) {
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <h2 style={{ fontFamily: display, fontSize: 20, color: C.textDark, margin: 0, letterSpacing: 0.5 }}>Notice Board</h2>
-        <button onClick={() => setShowForm(true)} style={{ padding: "9px 18px", background: C.maroon, color: C.white, border: "none", borderRadius: 0, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: body, display: "flex", alignItems: "center", gap: 6 }}>
+        <button onClick={openNew} style={{ padding: "9px 18px", background: C.maroon, color: C.white, border: "none", borderRadius: 0, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: body, display: "flex", alignItems: "center", gap: 6 }}>
           <PlusIcon/> Post Notice
         </button>
       </div>
@@ -603,11 +621,14 @@ function NoticeBoardTab({ notices, addNotice, deleteNotice, togglePinNotice }) {
               <p style={{ fontSize: 13, color: C.textMid, lineHeight: 1.7, fontFamily: body, marginBottom: 8 }}>{n.body}</p>
               <div style={{ fontSize: 12, color: C.textLight, fontFamily: body }}>Posted by {n.author} · {n.postedAt}</div>
             </div>
-            <div style={{ display: "flex", gap: 8, marginLeft: 16 }}>
+            <div style={{ display: "flex", gap: 8, marginLeft: 16, flexShrink: 0 }}>
               <button onClick={() => togglePinNotice(n.id)} title={n.pinned ? "Unpin" : "Pin"} style={{ background: n.pinned ? "rgba(140,26,17,0.08)" : C.cream, border: `1px solid ${C.border}`, borderRadius: 0, padding: "6px 12px", cursor: "pointer", fontSize: 12, fontFamily: body, color: n.pinned ? C.maroon : C.textLight }}>
                 {n.pinned ? "📌 Pinned" : "📌 Pin"}
               </button>
-              <button onClick={() => { if (window.confirm("Delete this notice?")) deleteNotice(n.id); }} style={{ background: "rgba(192,57,43,0.06)", border: "none", borderRadius: 0, padding: "6px 10px", cursor: "pointer", color: C.red }}>
+              <button onClick={() => openEdit(n)} title="Edit notice" style={{ background: C.cream, border: `1px solid ${C.border}`, borderRadius: 0, padding: "6px 10px", cursor: "pointer", color: C.textMid }}>
+                <EditIcon/>
+              </button>
+              <button onClick={() => { if (window.confirm("Delete this notice?")) deleteNotice(n.id); }} title="Delete notice" style={{ background: "rgba(192,57,43,0.06)", border: "none", borderRadius: 0, padding: "6px 10px", cursor: "pointer", color: C.red }}>
                 <TrashIcon/>
               </button>
             </div>
@@ -616,7 +637,7 @@ function NoticeBoardTab({ notices, addNotice, deleteNotice, togglePinNotice }) {
       ))}
 
       {showForm && (
-        <Modal title="Post Notice" onClose={() => setShowForm(false)}>
+        <Modal title={editingNotice ? "Edit Notice" : "Post Notice"} onClose={() => { setShowForm(false); setEditingNotice(null); }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <div>
               <label style={labelStyle}>Title *</label>
@@ -636,8 +657,10 @@ function NoticeBoardTab({ notices, addNotice, deleteNotice, togglePinNotice }) {
             </label>
           </div>
           <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 20 }}>
-            <button onClick={() => setShowForm(false)} style={{ padding: "10px 20px", border: `1px solid ${C.border}`, background: "transparent", borderRadius: 0, fontSize: 13, cursor: "pointer", fontFamily: body }}>Cancel</button>
-            <button onClick={handlePost} style={{ padding: "10px 24px", background: C.maroon, color: C.white, border: "none", borderRadius: 0, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: body }}>Post Notice</button>
+            <button onClick={() => { setShowForm(false); setEditingNotice(null); }} style={{ padding: "10px 20px", border: `1px solid ${C.border}`, background: "transparent", borderRadius: 0, fontSize: 13, cursor: "pointer", fontFamily: body }}>Cancel</button>
+            <button onClick={handleSave} style={{ padding: "10px 24px", background: C.maroon, color: C.white, border: "none", borderRadius: 0, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: body }}>
+              {editingNotice ? "Save Changes" : "Post Notice"}
+            </button>
           </div>
         </Modal>
       )}
@@ -647,10 +670,19 @@ function NoticeBoardTab({ notices, addNotice, deleteNotice, togglePinNotice }) {
 
 // ─── Hall Hire Tab ────────────────────────────────────────────────────────────
 
-function HallHireTab({ hallHireBookings, updateBookingStatus, blockedDates }) {
+const ADMIN_SLOTS = [
+  { value: "morning",   label: "Morning (9am – 1pm)",  start: "09:00", end: "13:00" },
+  { value: "afternoon", label: "Afternoon (1pm – 5pm)", start: "13:00", end: "17:00" },
+  { value: "fullday",   label: "Full Day (9am – 5pm)",  start: "09:00", end: "17:00" },
+];
+
+function HallHireTab({ hallHireBookings, updateBookingStatus, blockedDates, blockedSlots, addHallHireBooking }) {
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
+  const [showCreate, setShowCreate] = useState(false);
+  const [createSuccess, setCreateSuccess] = useState("");
+  const [form, setForm] = useState({ date: "", slot: "fullday", bookingName: "", eventName: "", isMember: false });
 
   const statusColor = { pending: "#b8911f", approved: C.green, declined: C.red };
   const statusBg = { pending: "rgba(216,167,55,0.1)", approved: C.greenLight, declined: "rgba(192,57,43,0.08)" };
@@ -664,9 +696,102 @@ function HallHireTab({ hallHireBookings, updateBookingStatus, blockedDates }) {
     if (b.date) bookingsByDate[b.date] = b;
   });
 
+  const availableSlots = (date) => {
+    if (!date) return ADMIN_SLOTS;
+    const taken = blockedSlots[date] || [];
+    return ADMIN_SLOTS.filter(s => {
+      if (s.value === "fullday") return taken.length === 0;
+      return !taken.includes(s.value) && !taken.includes("fullday");
+    });
+  };
+
+  const handleCreate = () => {
+    if (!form.date || !form.bookingName || !form.eventName) return;
+    const slotDef = ADMIN_SLOTS.find(s => s.value === form.slot);
+    addHallHireBooking({
+      name: form.bookingName,
+      eventType: form.eventName,
+      date: form.date,
+      dateDisplay: dateDisplay(form.date),
+      slot: form.slot,
+      startTime: slotDef.start,
+      endTime: slotDef.end,
+      isMember: form.isMember,
+      expectedGuests: "",
+      email: "—",
+      phone: "—",
+      notes: `Admin-created booking. ${form.isMember ? "Member rate." : "Public rate."}`,
+    });
+    setCreateSuccess(`Booking created for ${dateDisplay(form.date)} — ${slotDef.label}`);
+    setForm({ date: "", slot: "fullday", bookingName: "", eventName: "", isMember: false });
+    setShowCreate(false);
+    setTimeout(() => setCreateSuccess(""), 4000);
+  };
+
   return (
     <div>
-      <h2 style={{ fontFamily: display, fontSize: 20, color: C.textDark, margin: "0 0 20px", letterSpacing: 0.5 }}>Hall Hire Management</h2>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+        <h2 style={{ fontFamily: display, fontSize: 20, color: C.textDark, margin: 0, letterSpacing: 0.5 }}>Hall Hire Management</h2>
+        <button
+          onClick={() => setShowCreate(v => !v)}
+          style={{ padding: "9px 18px", background: showCreate ? C.cream : C.maroon, color: showCreate ? C.textDark : C.white, border: `1px solid ${showCreate ? C.border : C.maroon}`, borderRadius: 0, fontWeight: 700, fontSize: 12, cursor: "pointer", fontFamily: body }}
+        >
+          {showCreate ? "Cancel" : "+ Create Booking"}
+        </button>
+      </div>
+
+      {createSuccess && (
+        <div style={{ background: C.greenLight, border: `1px solid ${C.green}`, color: C.green, padding: "10px 14px", fontSize: 13, fontFamily: body, fontWeight: 600, marginBottom: 16 }}>
+          ✓ {createSuccess}
+        </div>
+      )}
+
+      {showCreate && (
+        <div style={{ background: C.white, border: `1px solid ${C.border}`, padding: "22px 24px", marginBottom: 24 }}>
+          <div style={{ fontFamily: display, fontSize: 15, color: C.textDark, marginBottom: 16, letterSpacing: 0.5 }}>New Booking</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
+            <div>
+              <label style={labelStyle}>Booking Name *</label>
+              <input style={inputStyle} value={form.bookingName} onChange={e => setForm(f => ({ ...f, bookingName: e.target.value }))} placeholder="e.g. Petrov Family"/>
+            </div>
+            <div>
+              <label style={labelStyle}>Event / Occasion *</label>
+              <input style={inputStyle} value={form.eventName} onChange={e => setForm(f => ({ ...f, eventName: e.target.value }))} placeholder="e.g. Birthday Party"/>
+            </div>
+            <div>
+              <label style={labelStyle}>Date *</label>
+              <input style={inputStyle} type="date" value={form.date} min={new Date().toISOString().split("T")[0]} onChange={e => setForm(f => ({ ...f, date: e.target.value, slot: "fullday" }))}/>
+            </div>
+            <div>
+              <label style={labelStyle}>Slot</label>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 5 }}>
+                {availableSlots(form.date).map(opt => (
+                  <label key={opt.value} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 12, fontFamily: body, color: C.textDark }}>
+                    <input type="radio" name="admin-slot" value={opt.value} checked={form.slot === opt.value} onChange={() => setForm(f => ({ ...f, slot: opt.value }))} style={{ accentColor: C.maroon }}/>
+                    {opt.label}
+                  </label>
+                ))}
+                {availableSlots(form.date).length === 0 && (
+                  <span style={{ fontSize: 12, color: C.red, fontFamily: body }}>Date fully booked</span>
+                )}
+              </div>
+            </div>
+          </div>
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, fontFamily: body, color: C.textDark }}>
+              <input type="checkbox" checked={form.isMember} onChange={e => setForm(f => ({ ...f, isMember: e.target.checked }))} style={{ accentColor: C.maroon }}/>
+              Member booking (member rate applies)
+            </label>
+          </div>
+          <button
+            onClick={handleCreate}
+            disabled={!form.date || !form.bookingName || !form.eventName || availableSlots(form.date).length === 0}
+            style={{ padding: "10px 24px", background: C.maroon, color: C.white, border: "none", borderRadius: 0, fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: body, opacity: (!form.date || !form.bookingName || !form.eventName) ? 0.5 : 1 }}
+          >
+            Create Booking
+          </button>
+        </div>
+      )}
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
         {/* Calendar */}
@@ -769,12 +894,12 @@ function HallHireTab({ hallHireBookings, updateBookingStatus, blockedDates }) {
 
 // ─── Main Admin Dashboard ─────────────────────────────────────────────────────
 
-const TABS = ["Members", "Analytics", "Events", "Notice Board", "Hall Hire"];
+const TABS = ["Analytics", "Members", "Events", "Notice Board", "Hall Hire"];
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  const { members, addMember, updateMember, events, addEvent, updateEvent, deleteEvent, notices, addNotice, deleteNotice, togglePinNotice, hallHireBookings, updateBookingStatus, blockedDates, setRole } = useDemo();
-  const [tab, setTab] = useState("Members");
+  const { members, addMember, updateMember, events, addEvent, updateEvent, deleteEvent, notices, addNotice, updateNotice, deleteNotice, togglePinNotice, hallHireBookings, addHallHireBooking, updateBookingStatus, blockedDates, blockedSlots, setRole } = useDemo();
+  const [tab, setTab] = useState("Analytics");
 
   const handleSignOut = () => { setRole("public"); navigate("/"); };
 
@@ -810,11 +935,11 @@ export default function AdminDashboard() {
       </div>
 
       <div className="admin-content" style={{ maxWidth: 1200, margin: "0 auto", padding: 28 }}>
-        {tab === "Members" && <MembersTab members={members} addMember={addMember} updateMember={updateMember}/>}
         {tab === "Analytics" && <AnalyticsTab members={members}/>}
+        {tab === "Members" && <MembersTab members={members} addMember={addMember} updateMember={updateMember}/>}
         {tab === "Events" && <EventsTab events={events} addEvent={addEvent} updateEvent={updateEvent} deleteEvent={deleteEvent}/>}
-        {tab === "Notice Board" && <NoticeBoardTab notices={notices} addNotice={addNotice} deleteNotice={deleteNotice} togglePinNotice={togglePinNotice}/>}
-        {tab === "Hall Hire" && <HallHireTab hallHireBookings={hallHireBookings} updateBookingStatus={updateBookingStatus} blockedDates={blockedDates}/>}
+        {tab === "Notice Board" && <NoticeBoardTab notices={notices} addNotice={addNotice} updateNotice={updateNotice} deleteNotice={deleteNotice} togglePinNotice={togglePinNotice}/>}
+        {tab === "Hall Hire" && <HallHireTab hallHireBookings={hallHireBookings} updateBookingStatus={updateBookingStatus} blockedDates={blockedDates} blockedSlots={blockedSlots} addHallHireBooking={addHallHireBooking}/>}
       </div>
     </div>
   );

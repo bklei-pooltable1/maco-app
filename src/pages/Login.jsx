@@ -22,6 +22,9 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [showForgot, setShowForgot] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotSent, setForgotSent] = useState(false);
 
   // Login fields
   const [loginEmail, setLoginEmail] = useState("");
@@ -144,9 +147,14 @@ export default function Login() {
                   <label style={labelStyle}>Email</label>
                   <input type="email" required style={inputStyle} value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} placeholder="your@email.com"/>
                 </div>
-                <div style={{ marginBottom: 24 }}>
+                <div style={{ marginBottom: 8 }}>
                   <label style={labelStyle}>Password</label>
                   <input type="password" required style={inputStyle} value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} placeholder="••••••••"/>
+                </div>
+                <div style={{ textAlign: "right", marginBottom: 20 }}>
+                  <button type="button" onClick={() => { setShowForgot(true); setForgotSent(false); setForgotEmail(""); }} style={{ background: "none", border: "none", color: C.maroon, fontSize: 12, cursor: "pointer", fontFamily: body, textDecoration: "underline", padding: 0 }}>
+                    Forgot Password?
+                  </button>
                 </div>
                 <button
                   type="submit"
@@ -211,6 +219,50 @@ export default function Login() {
           </div>
         </div>
       </div>
+
+      {/* Forgot Password Modal */}
+      {showForgot && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+          <div style={{ background: C.white, width: "100%", maxWidth: 400, padding: 32, boxShadow: "0 20px 60px rgba(0,0,0,0.25)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <h3 style={{ fontFamily: display, fontSize: 18, color: C.textDark, margin: 0, letterSpacing: 0.5 }}>Reset Password</h3>
+              <button onClick={() => setShowForgot(false)} style={{ background: "none", border: "none", fontSize: 22, color: C.textLight, cursor: "pointer", padding: "0 4px" }}>×</button>
+            </div>
+            {forgotSent ? (
+              <div>
+                <div style={{ background: C.greenLight, border: `1px solid ${C.green}`, color: C.green, padding: "12px 16px", fontSize: 13, fontFamily: body, marginBottom: 16 }}>
+                  ✓ If that email is registered, you'll receive a password reset link shortly.
+                </div>
+                <button onClick={() => setShowForgot(false)} style={{ width: "100%", padding: "12px 0", background: C.maroon, color: C.white, border: "none", fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: body }}>
+                  Back to Sign In
+                </button>
+              </div>
+            ) : (
+              <div>
+                <p style={{ fontSize: 13, color: C.textMid, fontFamily: body, lineHeight: 1.6, marginBottom: 20 }}>
+                  Enter your email address and we'll send you a link to reset your password.
+                </p>
+                <div style={{ marginBottom: 6 }}>
+                  <label style={labelStyle}>Email Address</label>
+                  <input type="email" style={inputStyle} value={forgotEmail} onChange={e => setForgotEmail(e.target.value)} placeholder="your@email.com"/>
+                </div>
+                <div style={{ background: C.goldMuted, border: `1px solid ${C.goldLight}`, padding: "10px 14px", fontSize: 12, color: C.textMid, fontFamily: body, marginBottom: 20 }}>
+                  {/* TODO: Connect to Supabase auth.resetPasswordForEmail() when backend is live */}
+                  Password reset will be available once Supabase auth is connected. For now, please contact us at <strong>MacedonianCommunityOfBrisbane@gmail.com</strong>.
+                </div>
+                <div style={{ display: "flex", gap: 10 }}>
+                  <button onClick={() => setShowForgot(false)} style={{ flex: 1, padding: "12px 0", background: "transparent", border: `1px solid ${C.border}`, fontWeight: 600, fontSize: 13, cursor: "pointer", fontFamily: body, color: C.textMid }}>
+                    Cancel
+                  </button>
+                  <button onClick={() => setForgotSent(true)} disabled={!forgotEmail.trim()} style={{ flex: 1, padding: "12px 0", background: C.maroon, color: C.white, border: "none", fontWeight: 700, fontSize: 13, cursor: forgotEmail.trim() ? "pointer" : "not-allowed", fontFamily: body, opacity: forgotEmail.trim() ? 1 : 0.6 }}>
+                    Send Reset Link
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { C, body, display } from "../theme";
 import { SunIcon, HomeIcon, CalIcon, BellIcon, BuildingIcon, UsersIcon, LogOutIcon } from "../components/ui/Icons";
 import Badge from "../components/ui/Badge";
 import { useDemo } from "../context/DemoContext";
+import { getPricing, HALL_SLOTS } from "../data/mockData";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -229,16 +230,184 @@ function MembershipSection({ member, updateMember }) {
         )}
       </div>
 
+      {/* Add Family Member Section */}
+      <AddFamilyMemberSection member={member} updateMember={updateMember}/>
+
       {cancelled
-        ? <div style={{ background: "rgba(192,57,43,0.08)", border: `1px solid ${C.red}`, padding: "12px 16px", fontSize: 13, color: C.red, fontFamily: body }}>
+        ? <div style={{ background: "rgba(192,57,43,0.08)", border: `1px solid ${C.red}`, padding: "12px 16px", fontSize: 13, color: C.red, fontFamily: body, marginTop: 16 }}>
             Your membership has been cancelled. You'll retain access until {member.renewalDate}.
           </div>
-        : <button onClick={handleCancel} style={{ background: "none", border: `1px solid ${C.border}`, padding: "10px 20px", fontSize: 12, color: C.textLight, cursor: "pointer", fontFamily: body, borderRadius: 0 }}>
+        : <button onClick={handleCancel} style={{ background: "none", border: `1px solid ${C.border}`, padding: "10px 20px", fontSize: 12, color: C.textLight, cursor: "pointer", fontFamily: body, borderRadius: 0, marginTop: 8 }}>
             Cancel Membership
           </button>
       }
     </SectionCard>
   );
+}
+
+// ─── Add Family Member ────────────────────────────────────────────────────────
+function AddFamilyMemberSection({ member, updateMember }) {
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ name: "", dateOfBirth: "" });
+  const [confirming, setConfirming] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const currentSize = member.familySize;
+  const newSize = currentSize + 1;
+  const currentPricing = getPricing(currentSize);
+  const newPricing = getPricing(newSize);
+  const priceDiff = newPricing.yearlyPrice - currentPricing.yearlyPrice;
+
+  const handleConfirm = () => {
+    const updatedFamilyMembers = [...(member.familyMembers || []), { name: form.name, dateOfBirth: form.dateOfBirth }];
+    updateMember(member.id, {
+      familySize: newSize,
+      familyMembers: updatedFamilyMembers,
+      planType: newPricing.label,
+      yearlyPrice: newPricing.yearlyPrice,
+      monthlyPrice: newPricing.monthlyPrice,
+    });
+    setShowForm(false);
+    setConfirming(false);
+    setForm({ name: "", dateOfBirth: "" });
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
+  };
+
+  return (
+    <div style={{ marginBottom: 24, borderTop: `1px solid ${C.border}`, paddingTop: 20 }}>
+      <div style={{ fontSize: 13, fontWeight: 600, color: C.textDark, fontFamily: body, marginBottom: 10 }}>Family Members</div>
+
+      {saved && (
+        <div style={{ background: C.greenLight, border: `1px solid ${C.green}`, color: C.green, padding: "10px 14px", fontSize: 13, fontFamily: body, marginBottom: 12 }}>
+          ✓ Family member added successfully
+        </div>
+      )}
+
+      {/* Current family members */}
+      {(member.familyMembers || []).map((fm, i) => (
+        <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "8px 14px", background: C.cream, marginBottom: 6, fontSize: 13, fontFamily: body }}>
+          <span style={{ color: C.textDark }}>{fm.name}</span>
+          <span style={{ color: C.textLight }}>{fm.dateOfBirth || (fm.age ? `Age ${fm.age}` : "—")}</span>
+        </div>
+      ))}
+      {(member.familyMembers || []).length === 0 && (
+        <p style={{ fontSize: 13, color: C.textLight, fontFamily: body, marginBottom: 10 }}>No additional members on this plan.</p>
+      )}
+
+      {!showForm ? (
+        <button onClick={() => setShowForm(true)} style={{ marginTop: 8, padding: "9px 18px", background: C.cream, border: `1px solid ${C.border}`, borderRadius: 0, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: body, color: C.textDark }}>
+          + Add Family Member
+        </button>
+      ) : confirming ? (
+        <div style={{ marginTop: 12, border: `1px solid ${C.border}`, padding: 18, background: C.cream }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: C.textDark, fontFamily: body, marginBottom: 12 }}>Confirm Adding {form.name}</div>
+          <div style={{ background: "rgba(216,167,55,0.12)", border: `1px solid #D8A737`, padding: "12px 14px", marginBottom: 16, fontSize: 13, fontFamily: body }}>
+            <div style={{ fontWeight: 600, color: C.textDark, marginBottom: 4 }}>Price Change Notice</div>
+            <div style={{ color: C.textMid }}>
+              Your membership will change from <strong>{currentPricing.label}</strong> (${currentPricing.yearlyPrice}/yr) to <strong>{newPricing.label}</strong> (${newPricing.yearlyPrice}/yr).
+            </div>
+            {priceDiff > 0 && (
+              <div style={{ color: C.textMid, marginTop: 4 }}>
+                That's an additional <strong>${priceDiff}/year</strong> (prorated on your next renewal).
+              </div>
+            )}
+          </div>
+          <div style={{ display: "flex", gap: 10 }}>
+            <button onClick={() => setConfirming(false)} style={{ padding: "10px 20px", border: `1px solid ${C.border}`, background: "transparent", borderRadius: 0, fontSize: 13, cursor: "pointer", fontFamily: body, color: C.textMid }}>Go Back</button>
+            <button onClick={handleConfirm} style={{ padding: "10px 24px", background: C.maroon, color: C.white, border: "none", borderRadius: 0, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: body }}>Confirm — Add Member</button>
+          </div>
+        </div>
+      ) : (
+        <div style={{ marginTop: 12, border: `1px solid ${C.border}`, padding: 18 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: C.textDark, fontFamily: body, marginBottom: 14 }}>New Family Member Details</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
+            <div>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: C.textLight, fontFamily: body, marginBottom: 5, textTransform: "uppercase" }}>Full Name *</label>
+              <input style={{ width: "100%", padding: "9px 12px", border: `1px solid ${C.border}`, borderRadius: 0, fontSize: 13, fontFamily: body, color: C.textDark, background: C.white, boxSizing: "border-box" }} value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="Full name"/>
+            </div>
+            <div>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: C.textLight, fontFamily: body, marginBottom: 5, textTransform: "uppercase" }}>Date of Birth *</label>
+              <input type="date" style={{ width: "100%", padding: "9px 12px", border: `1px solid ${C.border}`, borderRadius: 0, fontSize: 13, fontFamily: body, color: C.textDark, background: C.white, boxSizing: "border-box" }} value={form.dateOfBirth} onChange={e => setForm(p => ({ ...p, dateOfBirth: e.target.value }))}/>
+            </div>
+          </div>
+          {/* Price preview */}
+          <div style={{ background: C.goldMuted, border: `1px solid ${C.goldLight}`, padding: "10px 14px", marginBottom: 14, fontSize: 12, fontFamily: body, color: C.textMid }}>
+            Adding this member will change your plan from <strong>{currentPricing.label} (${currentPricing.yearlyPrice}/yr)</strong> to <strong>{newPricing.label} (${newPricing.yearlyPrice}/yr)</strong>
+            {priceDiff > 0 ? ` — +$${priceDiff}/year` : ""}.
+          </div>
+          <div style={{ display: "flex", gap: 10 }}>
+            <button onClick={() => { setShowForm(false); setForm({ name: "", dateOfBirth: "" }); }} style={{ padding: "9px 18px", border: `1px solid ${C.border}`, background: "transparent", borderRadius: 0, fontSize: 12, cursor: "pointer", fontFamily: body, color: C.textMid }}>Cancel</button>
+            <button onClick={() => { if (form.name && form.dateOfBirth) setConfirming(true); }} disabled={!form.name || !form.dateOfBirth} style={{ padding: "9px 20px", background: C.maroon, color: C.white, border: "none", borderRadius: 0, fontSize: 12, fontWeight: 700, cursor: form.name && form.dateOfBirth ? "pointer" : "not-allowed", fontFamily: body, opacity: form.name && form.dateOfBirth ? 1 : 0.6 }}>
+              Continue →
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Calendar helpers (iCal / Google) ────────────────────────────────────────
+
+function dateToICSFormat(dateStr, timeStr) {
+  // dateStr: "2026-04-06", timeStr: "9:00 AM" → "20260406T090000"
+  const [y, m, d] = dateStr.split("-");
+  if (!timeStr) return `${y}${m}${d}T000000`;
+  const [time, meridiem] = timeStr.split(" ");
+  let [hours, minutes] = time.split(":").map(Number);
+  if (meridiem === "PM" && hours !== 12) hours += 12;
+  if (meridiem === "AM" && hours === 12) hours = 0;
+  return `${y}${m}${d}T${String(hours).padStart(2, "0")}${String(minutes || 0).padStart(2, "0")}00`;
+}
+
+function buildICS(eventsArr) {
+  const lines = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Macedonian Community Brisbane//MACO//EN",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
+    "X-WR-CALNAME:Macedonian Community Brisbane",
+    "X-WR-TIMEZONE:Australia/Brisbane",
+  ];
+  eventsArr.forEach(e => {
+    const dtStart = dateToICSFormat(e.date, e.time);
+    const dtEnd = dateToICSFormat(e.date, e.endTime);
+    lines.push(
+      "BEGIN:VEVENT",
+      `DTSTART;TZID=Australia/Brisbane:${dtStart}`,
+      `DTEND;TZID=Australia/Brisbane:${dtEnd}`,
+      `SUMMARY:${e.title}`,
+      `DESCRIPTION:${(e.description || "").replace(/\n/g, "\\n")}`,
+      `LOCATION:${e.location || ""}`,
+      `UID:${e.id}@maco-brisbane.org`,
+      "END:VEVENT"
+    );
+  });
+  lines.push("END:VCALENDAR");
+  return lines.join("\r\n");
+}
+
+function downloadICS(content, filename) {
+  const blob = new Blob([content], { type: "text/calendar;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function googleCalUrl(e) {
+  const start = dateToICSFormat(e.date, e.time);
+  const end = dateToICSFormat(e.date, e.endTime);
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: e.title,
+    dates: `${start}/${end}`,
+    details: e.description || "",
+    location: e.location || "",
+  });
+  return `https://www.google.com/calendar/render?${params.toString()}`;
 }
 
 // ─── Calendar ─────────────────────────────────────────────────────────────────
@@ -265,7 +434,18 @@ function CalendarSection({ events, rsvps, toggleRsvp }) {
   const nextMonth = () => { if (month === 11) { setYear(y => y + 1); setMonth(0); } else setMonth(m => m + 1); setSelectedDay(null); };
 
   return (
-    <SectionCard title="Community Calendar">
+    <SectionCard title="Community Calendar" action={
+      <button
+        onClick={() => {
+          // TODO: Replace with live iCal feed URL when backend is connected
+          const ics = buildICS(events);
+          downloadICS(ics, "maco-calendar.ics");
+        }}
+        style={{ padding: "7px 14px", border: `1px solid ${C.border}`, background: C.cream, borderRadius: 0, fontSize: 12, cursor: "pointer", fontFamily: body, color: C.textMid, fontWeight: 600 }}
+      >
+        ↓ Subscribe (.ics)
+      </button>
+    }>
       <div className="calendar-layout" style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 24 }}>
         {/* Calendar grid */}
         <div>
@@ -329,10 +509,27 @@ function CalendarSection({ events, rsvps, toggleRsvp }) {
                       width: "100%", padding: "9px", border: `1px solid ${rsvpd ? C.red : C.maroon}`,
                       borderRadius: 0, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: body,
                       background: rsvpd ? "rgba(192,57,43,0.06)" : C.maroon,
-                      color: rsvpd ? C.red : C.white,
+                      color: rsvpd ? C.red : C.white, marginBottom: 8,
                     }}>
                       {rsvpd ? "✓ RSVP'd — Remove" : "RSVP to this Event"}
                     </button>
+                    {/* Calendar export buttons */}
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+                      <button
+                        onClick={() => downloadICS(buildICS([e]), `${e.title.replace(/\s+/g, "-")}.ics`)}
+                        style={{ padding: "7px 6px", border: `1px solid ${C.border}`, background: C.cream, borderRadius: 0, fontSize: 11, cursor: "pointer", fontFamily: body, color: C.textMid, fontWeight: 600 }}
+                      >
+                        🍎 Apple Calendar
+                      </button>
+                      <a
+                        href={googleCalUrl(e)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ padding: "7px 6px", border: `1px solid ${C.border}`, background: C.cream, borderRadius: 0, fontSize: 11, cursor: "pointer", fontFamily: body, color: C.textMid, fontWeight: 600, textDecoration: "none", display: "block", textAlign: "center" }}
+                      >
+                        📅 Google Calendar
+                      </a>
+                    </div>
                   </div>
                 );
               })
@@ -367,36 +564,49 @@ function NoticeBoardSection({ notices }) {
 }
 
 // ─── Hall Hire ────────────────────────────────────────────────────────────────
-function HallHireSection({ blockedDates, addHallHireBooking, member, hallHireBookings }) {
+function HallHireSection({ blockedDates, blockedSlots, addHallHireBooking, member, hallHireBookings }) {
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
   const [selectedDate, setSelectedDate] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [form, setForm] = useState({ eventType: "", guests: "", notes: "" });
+  const [form, setForm] = useState({ eventType: "", guests: "", notes: "", slot: "fullday" });
 
   const cells = getCalendarDays(year, month);
   const prevMonth = () => { if (month === 0) { setYear(y => y - 1); setMonth(11); } else setMonth(m => m - 1); setSelectedDate(null); setShowForm(false); };
   const nextMonth = () => { if (month === 11) { setYear(y => y + 1); setMonth(0); } else setMonth(m => m + 1); setSelectedDate(null); setShowForm(false); };
 
-  // Pending bookings for this month
+  // Pending bookings
   const pendingDates = hallHireBookings.filter(b => b.status === "pending").map(b => b.date);
 
   const getDateStatus = (day) => {
     const iso = toISO(year, month, day);
-    if (blockedDates.includes(iso)) return "booked";
+    if (blockedDates.includes(iso)) return "booked"; // fully booked (both AM+PM)
     if (pendingDates.includes(iso)) return "pending";
     const d = new Date(year, month, day);
     if (d < today) return "past";
+    // Partially booked — still "available" but some slots taken
     return "available";
+  };
+
+  // Which slots are still available for a date
+  const availableSlots = (iso) => {
+    const taken = blockedSlots[iso] || [];
+    return Object.keys(HALL_SLOTS).filter(s => {
+      if (s === "fullday") return !taken.includes("morning") && !taken.includes("afternoon");
+      return !taken.includes(s);
+    });
   };
 
   const handleSelectDay = (day) => {
     const status = getDateStatus(day);
-    if (status === "booked" || status === "past" || status === "pending") return;
+    if (status === "booked" || status === "past") return;
     const iso = toISO(year, month, day);
     setSelectedDate(iso);
+    // Pre-select first available slot
+    const slots = availableSlots(iso);
+    setForm(f => ({ ...f, slot: slots[0] || "fullday" }));
     setShowForm(true);
     setSubmitted(false);
   };
@@ -409,13 +619,14 @@ function HallHireSection({ blockedDates, addHallHireBooking, member, hallHireBoo
       phone: member.phone,
       date: selectedDate,
       dateDisplay: selectedDate,
+      slot: form.slot,
       eventType: form.eventType,
       expectedGuests: parseInt(form.guests),
       notes: form.notes,
       memberId: member.id,
     });
     setSubmitted(true);
-    setForm({ eventType: "", guests: "", notes: "" });
+    setForm({ eventType: "", guests: "", notes: "", slot: "fullday" });
   };
 
   return (
@@ -440,17 +651,35 @@ function HallHireSection({ blockedDates, addHallHireBooking, member, hallHireBoo
               const status = getDateStatus(day);
               const iso = toISO(year, month, day);
               const isSelected = iso === selectedDate;
-              const bg = isSelected ? C.maroon : status === "booked" ? "rgba(192,57,43,0.1)" : status === "pending" ? "rgba(216,167,55,0.15)" : status === "past" ? C.cream : C.white;
+              const slots = blockedSlots[iso] || [];
+              const mornBooked = slots.includes("morning");
+              const aftnBooked = slots.includes("afternoon");
+              const bg = isSelected ? C.maroon : status === "booked" ? "rgba(192,57,43,0.15)" : status === "pending" ? "rgba(216,167,55,0.15)" : status === "past" ? C.cream : C.white;
               const color = isSelected ? C.white : status === "booked" ? C.red : status === "pending" ? "#b8911f" : status === "past" ? C.textLight : C.textDark;
+              const canClick = status === "available" || status === "pending";
               return (
                 <div key={i} onClick={() => handleSelectDay(day)} style={{
-                  aspectRatio: "1", display: "flex", alignItems: "center", justifyContent: "center",
-                  background: bg, color, fontSize: 12, fontFamily: body,
-                  cursor: status === "available" ? "pointer" : "default",
+                  aspectRatio: "1", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start",
+                  background: bg, color, fontSize: 11, fontFamily: body,
+                  cursor: canClick ? "pointer" : "default",
                   border: `1px solid ${isSelected ? C.maroon : C.border}`,
                   fontWeight: isSelected ? 700 : 400,
+                  overflow: "hidden", position: "relative",
+                  paddingTop: 4,
                 }}>
-                  {day}
+                  {/* Half-day slot indicators */}
+                  {(mornBooked || aftnBooked) && !isSelected && (
+                    <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", pointerEvents: "none" }}>
+                      <div style={{ flex: 1, background: mornBooked ? "rgba(192,57,43,0.15)" : "transparent" }}/>
+                      <div style={{ flex: 1, background: aftnBooked ? "rgba(192,57,43,0.15)" : "transparent" }}/>
+                    </div>
+                  )}
+                  <span style={{ position: "relative", zIndex: 1 }}>{day}</span>
+                  {(mornBooked || aftnBooked) && !isSelected && (
+                    <div style={{ fontSize: 7, color: C.red, fontWeight: 700, position: "relative", zIndex: 1, lineHeight: 1 }}>
+                      {mornBooked && aftnBooked ? "FULL" : mornBooked ? "AM" : "PM"}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -476,6 +705,24 @@ function HallHireSection({ blockedDates, addHallHireBooking, member, hallHireBoo
           {showForm && !submitted && (
             <div style={{ border: `1px solid ${C.border}`, padding: 20 }}>
               <div style={{ fontSize: 14, fontWeight: 600, color: C.textDark, fontFamily: body, marginBottom: 16 }}>Booking Enquiry — {selectedDate}</div>
+
+              {/* Slot selector */}
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: C.textMid, fontFamily: body, marginBottom: 8 }}>Booking Slot *</label>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {availableSlots(selectedDate).map(slotKey => {
+                    const slot = HALL_SLOTS[slotKey];
+                    return (
+                      <label key={slotKey} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", padding: "8px 12px", border: `1px solid ${form.slot === slotKey ? C.maroon : C.border}`, background: form.slot === slotKey ? "rgba(140,26,17,0.05)" : C.white, fontSize: 13, fontFamily: body, color: C.textDark }}>
+                        <input type="radio" name="hire-slot" value={slotKey} checked={form.slot === slotKey} onChange={() => setForm(p => ({ ...p, slot: slotKey }))} style={{ accentColor: C.maroon }}/>
+                        <span style={{ fontWeight: 600 }}>{slot.label}</span>
+                        <span style={{ fontSize: 11, color: C.textLight, marginLeft: "auto" }}>{slot.hours} hours</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
               <div style={{ marginBottom: 14 }}>
                 <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: C.textMid, fontFamily: body, marginBottom: 5 }}>Event Type *</label>
                 <input style={{ width: "100%", padding: "9px 12px", border: `1px solid ${C.border}`, borderRadius: 0, fontSize: 13, fontFamily: body, boxSizing: "border-box" }} value={form.eventType} onChange={e => setForm(p => ({ ...p, eventType: e.target.value }))} placeholder="e.g. Birthday, Wedding, Meeting"/>
@@ -550,7 +797,7 @@ const NAV_ITEMS = [
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function MemberDashboard() {
   const navigate = useNavigate();
-  const { currentMember, updateMember, events, notices, hallHireBookings, blockedDates, addHallHireBooking, rsvps, toggleRsvp, setRole } = useDemo();
+  const { currentMember, updateMember, events, notices, hallHireBookings, blockedDates, blockedSlots, addHallHireBooking, rsvps, toggleRsvp, setRole } = useDemo();
   const [section, setSection] = useState("overview");
 
   const member = currentMember;
@@ -611,7 +858,7 @@ export default function MemberDashboard() {
           {section === "membership" && <MembershipSection member={member} updateMember={updateMember}/>}
           {section === "calendar" && <CalendarSection events={events} rsvps={rsvps} toggleRsvp={toggleRsvp}/>}
           {section === "notices" && <NoticeBoardSection notices={notices}/>}
-          {section === "hallhire" && <HallHireSection blockedDates={blockedDates} addHallHireBooking={addHallHireBooking} member={member} hallHireBookings={hallHireBookings}/>}
+          {section === "hallhire" && <HallHireSection blockedDates={blockedDates} blockedSlots={blockedSlots} addHallHireBooking={addHallHireBooking} member={member} hallHireBookings={hallHireBookings}/>}
           {section === "bookings" && <MyBookingsSection hallHireBookings={hallHireBookings} member={member}/>}
         </div>
       </div>

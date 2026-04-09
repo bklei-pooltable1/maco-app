@@ -23,6 +23,14 @@ const PRICING = {
   half_day_public: 300,
 };
 
+// Slot presets — selecting a slot pre-fills start/end times
+const BOOKING_SLOTS = [
+  { value: "morning",   label: "Morning Slot (9am – 1pm)",   start: "09:00", end: "13:00" },
+  { value: "afternoon", label: "Afternoon Slot (1pm – 5pm)", start: "13:00", end: "17:00" },
+  { value: "fullday",   label: "Full Day (9am – 5pm)",        start: "09:00", end: "17:00" },
+  { value: "custom",    label: "Custom Times",                start: "",      end: "" },
+];
+
 export default function VenueBooking() {
   const { profile } = useAuth();
   const [bookings, setBookings] = useState([]);
@@ -36,7 +44,7 @@ export default function VenueBooking() {
   const isAdmin = profile?.role === "admin" || profile?.role === "super_admin";
 
   const [form, setForm] = useState({
-    family_name: "", date: "", start_time: "", end_time: "", purpose: "", notes: "",
+    family_name: "", date: "", slot: "fullday", start_time: "09:00", end_time: "17:00", purpose: "", notes: "",
   });
 
   const fetchData = async () => {
@@ -166,15 +174,36 @@ export default function VenueBooking() {
                 <label style={labelStyle}>Date</label>
                 <input type="date" required style={inputStyle} value={form.date} min={new Date().toISOString().split("T")[0]} onChange={(e) => setForm({ ...form, date: e.target.value })}/>
               </div>
-              <div>
-                <label style={labelStyle}>Start Time</label>
-                <input type="time" required style={inputStyle} value={form.start_time} onChange={(e) => setForm({ ...form, start_time: e.target.value })}/>
-              </div>
-              <div>
-                <label style={labelStyle}>End Time</label>
-                <input type="time" required style={inputStyle} value={form.end_time} onChange={(e) => setForm({ ...form, end_time: e.target.value })}/>
+            </div>
+
+            {/* Slot selector */}
+            <div style={{ marginBottom: 14 }}>
+              <label style={labelStyle}>Booking Slot</label>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6 }}>
+                {BOOKING_SLOTS.map(opt => (
+                  <label key={opt.value} style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", padding: "8px 12px", border: `1px solid ${form.slot === opt.value ? C.maroon : C.border}`, background: form.slot === opt.value ? "rgba(140,26,17,0.06)" : C.white, fontSize: 12, fontFamily: body, color: C.textDark }}>
+                    <input type="radio" name="booking-slot" value={opt.value} checked={form.slot === opt.value}
+                      onChange={() => setForm(f => ({ ...f, slot: opt.value, start_time: opt.start || f.start_time, end_time: opt.end || f.end_time }))}
+                      style={{ accentColor: C.maroon }}/>
+                    {opt.label}
+                  </label>
+                ))}
               </div>
             </div>
+
+            {/* Custom times — only shown for "custom" slot */}
+            {form.slot === "custom" && (
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
+                <div>
+                  <label style={labelStyle}>Start Time</label>
+                  <input type="time" required style={inputStyle} value={form.start_time} onChange={(e) => setForm({ ...form, start_time: e.target.value })}/>
+                </div>
+                <div>
+                  <label style={labelStyle}>End Time</label>
+                  <input type="time" required style={inputStyle} value={form.end_time} onChange={(e) => setForm({ ...form, end_time: e.target.value })}/>
+                </div>
+              </div>
+            )}
             <div style={{ marginBottom: 14 }}>
               <label style={labelStyle}>Purpose / Occasion</label>
               <input type="text" required style={inputStyle} value={form.purpose} onChange={(e) => setForm({ ...form, purpose: e.target.value })} placeholder="e.g. Birthday party, Family gathering"/>

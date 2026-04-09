@@ -149,9 +149,9 @@ function Step2({ data, onChange, onNext, onBack }) {
         )}
 
         {data.familyMembers.map((fm, i) => (
-          <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 80px 32px", gap: 10, marginBottom: 10, alignItems: "center" }}>
-            <input style={inputStyle} value={fm.name} onChange={e => updateFamilyMember(i, "name", e.target.value)} placeholder={`Member ${i + 2} name`}/>
-            <input style={inputStyle} type="number" value={fm.age} onChange={e => updateFamilyMember(i, "age", e.target.value)} placeholder="Age" min="0" max="120"/>
+          <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 160px 32px", gap: 10, marginBottom: 10, alignItems: "center" }}>
+            <input style={inputStyle} value={fm.name} onChange={e => updateFamilyMember(i, "name", e.target.value)} placeholder={`Member ${i + 2} full name`}/>
+            <input style={inputStyle} type="date" value={fm.dateOfBirth || ""} onChange={e => updateFamilyMember(i, "dateOfBirth", e.target.value)} title="Date of Birth"/>
             <button onClick={() => removeMember(i)} style={{ padding: "10px", background: "rgba(192,57,43,0.08)", border: "none", borderRadius: 0, cursor: "pointer", color: C.red, fontSize: 16, fontWeight: 700 }}>×</button>
           </div>
         ))}

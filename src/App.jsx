@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { DemoProvider } from "./context/DemoContext";
+import { LangProvider } from "./context/LangContext";
 import { globalStyles } from "./theme";
 import { C, body } from "./theme";
 
@@ -17,6 +18,7 @@ import SuperAdmin from "./pages/SuperAdmin";
 import SignUp from "./pages/SignUp";
 import MemberDashboard from "./pages/MemberDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import PublicCalendar from "./pages/PublicCalendar";
 
 // Layout
 import AppNav from "./components/layout/AppNav";
@@ -67,6 +69,7 @@ function AppRoutes() {
       {/* Demo pages — no auth required */}
       <Route path="/" element={<Home/>}/>
       <Route path="/signup" element={<SignUp/>}/>
+      <Route path="/calendar" element={<PublicCalendar/>}/>
       <Route path="/member-dashboard" element={<MemberDashboard/>}/>
       <Route path="/admin-dashboard" element={<AdminDashboard/>}/>
 
@@ -103,9 +106,11 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <DemoProvider>
-          <style>{globalStyles}</style>
-          <DemoBanner/>
-          <AppRoutes/>
+          <LangProvider>
+            <style>{globalStyles}</style>
+            <DemoBanner/>
+            <AppRoutes/>
+          </LangProvider>
         </DemoProvider>
       </AuthProvider>
     </BrowserRouter>

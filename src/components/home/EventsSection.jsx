@@ -1,11 +1,14 @@
+import { Link } from "react-router-dom";
 import Section from "../ui/Section";
 import SectionTitle from "../ui/SectionTitle";
 import Badge from "../ui/Badge";
 import { C, body, display } from "../../theme";
 import { useDemo } from "../../context/DemoContext";
+import { useLang } from "../../context/LangContext";
 
 export default function EventsSection() {
   const { events } = useDemo();
+  const { t } = useLang();
   const today = new Date().toISOString().split("T")[0];
   const upcomingEvents = events.filter(e => e.date >= today).slice(0, 6);
 
@@ -13,7 +16,7 @@ export default function EventsSection() {
     <>
       <div id="events"/>
       <Section bg={C.white}>
-        <SectionTitle sub="What's Coming Up" center>Upcoming Events</SectionTitle>
+        <SectionTitle sub={t("events.sectionSub")} center>{t("events.sectionTitle")}</SectionTitle>
         <div className="events-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
           {upcomingEvents.map((e, i) => (
             <div key={e.id || i} style={{
@@ -37,13 +40,14 @@ export default function EventsSection() {
           ))}
         </div>
         <div style={{ textAlign: "center", marginTop: 32 }}>
-          <button className="btn-outline" style={{
-            padding: "12px 28px", background: "transparent", color: C.maroon,
-            border: `1.5px solid ${C.maroon}`, borderRadius: 0, fontWeight: 600,
-            fontSize: 13, cursor: "pointer", fontFamily: body,
+          <Link to="/calendar" className="btn-outline" style={{
+            display: "inline-block",
+            padding: "12px 28px", color: C.maroon,
+            border: `1.5px solid ${C.maroon}`, fontWeight: 600,
+            fontSize: 13, fontFamily: body, textDecoration: "none",
           }}>
-            View Full Calendar →
-          </button>
+            {t("events.viewCalendar")}
+          </Link>
         </div>
       </Section>
     </>

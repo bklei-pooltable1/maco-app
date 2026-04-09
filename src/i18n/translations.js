@@ -1,0 +1,221 @@
+// ─── MACO App Translations ──────────────────────────────────────────────────
+// Add new keys in both 'en' and 'mk'. Use t("key.subkey") in components.
+
+export const translations = {
+  en: {
+    nav: {
+      events: "EVENTS",
+      notices: "NOTICES",
+      hallHire: "HALL HIRE",
+      about: "ABOUT",
+      calendar: "CALENDAR",
+      signIn: "Sign In",
+      joinNow: "Join Now",
+      dashboard: "DASHBOARD",
+      noticeBoard: "NOTICE BOARD",
+      home: "HOME",
+      adminPanel: "ADMIN PANEL",
+      myProfile: "My Profile",
+      signOut: "Sign Out",
+    },
+    hero: {
+      badge: "Macedonian Community of Brisbane",
+      heading: "Faith, Culture & Community Together",
+      subtext:
+        "Preserving our Macedonian Orthodox traditions while building a vibrant, connected community for families across Brisbane.",
+      becomeMember: "Become a Member",
+      viewEvents: "View Events",
+      stats: {
+        families: "Member Families",
+        members: "Community Members",
+        events: "Events Per Year",
+      },
+    },
+    events: {
+      sectionSub: "What's Coming Up",
+      sectionTitle: "Upcoming Events",
+      viewCalendar: "View Full Calendar →",
+      noEvents: "No upcoming events.",
+    },
+    notices: {
+      sectionSub: "From the Community",
+      sectionTitle: "Latest Notices",
+      readMore: "Read More",
+      noNotices: "No notices at this time.",
+    },
+    programs: {
+      sectionSub: "Programs & Events",
+      sectionTitle: "What We Offer",
+      weekly: { line1: "Weekly", line2: "Services", sub: "Every Sunday, 9 AM" },
+      cultural: { line1: "Cultural", line2: "Events", sub: "Monthly Gatherings" },
+      youth: { line1: "Youth", line2: "Programs", sub: "Ages 12–25" },
+      viewCalendar: "View Calendar →",
+    },
+    membership: {
+      sectionSub: "Join Us",
+      sectionTitle: "Become a Member Today",
+      subtext:
+        "Get access to exclusive events, members-only content, hall hire discounts, and stay connected all year round.",
+      mostPopular: "Most Popular",
+      joinNow: "Join Now",
+      footer: "Secure payments. Cancel anytime.",
+      tierDescs: {
+        Individual: "Perfect for single members",
+        Couple: "For you and your partner",
+        Family: "Whole family covered",
+      },
+      familyMembers: "Family Members",
+      familySameAddress: "All members must reside at the same address",
+      youSave: "You save",
+      perYear: "/year",
+      basePrice: "Base price at 3 members",
+    },
+    about: {
+      sectionSub: "About Us",
+      sectionTitle: "Our Community",
+      para1:
+        "We are a vibrant Macedonian Orthodox community dedicated to preserving our faith, language, and cultural heritage. Our church serves as a spiritual home and gathering place for Macedonian families across the greater Brisbane area.",
+      para2:
+        "Through regular services, cultural celebrations, youth programs, and community events, we create a welcoming environment for all generations to connect, worship, and grow together.",
+    },
+    footer: {
+      tagline:
+        "Preserving our Macedonian Orthodox faith, culture, and traditions for future generations.",
+      quickLinks: "Quick Links",
+      members: "Members",
+      contact: "Contact",
+      rights: "© 2026 Macedonian Community of Brisbane. All rights reserved.",
+      links: {
+        home: "Home",
+        events: "Events",
+        noticeBoard: "Notice Board",
+        hallHire: "Hall Hire",
+        about: "About",
+        signIn: "Sign In",
+        joinNow: "Join Now",
+        memberEvents: "Member Events",
+        myProfile: "My Profile",
+      },
+    },
+    calendar: {
+      pageTitle: "Community Calendar",
+      pageSub: "Upcoming events, services and community gatherings",
+      bookHall: "Book the Hall",
+      bookHallSub: "Available for private hire — members receive a 20% discount",
+      membersOnly: "Members Only",
+      reserved: "Reserved",
+      prevMonth: "←",
+      nextMonth: "→",
+      viewDetails: "View Details",
+    },
+  },
+
+  mk: {
+    nav: {
+      events: "НАСТАНИ",
+      notices: "СООПШТЕНИЈА",
+      hallHire: "ИЗНАЈМУВАЊЕ",
+      about: "ЗА НАС",
+      calendar: "КАЛЕНДАР",
+      signIn: "Влез",
+      joinNow: "Зачлени се",
+      dashboard: "ПОРТАЛ",
+      noticeBoard: "ОГЛАСНА ТАБЛА",
+      home: "ПОЧЕТНА",
+      adminPanel: "АДМИНИСТРАЦИЈА",
+      myProfile: "Мој профил",
+      signOut: "Одјава",
+    },
+    hero: {
+      badge: "Македонска Заедница на Брисбен",
+      heading: "Вера, Култура и Заедница Заедно",
+      subtext:
+        "Зачувување на нашите македонски православни традиции додека градиме жива, поврзана заедница за семејства низ Брисбен.",
+      becomeMember: "Стани Член",
+      viewEvents: "Погледни Настани",
+      stats: {
+        families: "Семејства-членови",
+        members: "Членови на заедницата",
+        events: "Настани годишно",
+      },
+    },
+    events: {
+      sectionSub: "Претстојни Настани",
+      sectionTitle: "Предстојни Настани",
+      viewCalendar: "Цел Календар →",
+      noEvents: "Нема претстојни настани.",
+    },
+    notices: {
+      sectionSub: "Од Заедницата",
+      sectionTitle: "Последни Соопштенија",
+      readMore: "Прочитај повеќе",
+      noNotices: "Нема соопштенија во моментот.",
+    },
+    programs: {
+      sectionSub: "Програми и Настани",
+      sectionTitle: "Што Нудиме",
+      weekly: { line1: "Неделни", line2: "Служби", sub: "Секоја Недела, 9 ч" },
+      cultural: { line1: "Културни", line2: "Настани", sub: "Месечни Собири" },
+      youth: { line1: "Младински", line2: "Програми", sub: "Возраст 12–25" },
+      viewCalendar: "Погледни Календар →",
+    },
+    membership: {
+      sectionSub: "Придружи ни се",
+      sectionTitle: "Стани Член Денес",
+      subtext:
+        "Добијте пристап до ексклузивни настани, содржина за членови, попусти за изнајмување сала и останете поврзани цела година.",
+      mostPopular: "Најпопуларно",
+      joinNow: "Зачлени се",
+      footer: "Сигурно плаќање. Откажи кога сакаш.",
+      tierDescs: {
+        Individual: "Совршено за поединечни членови",
+        Couple: "За вас и вашиот партнер",
+        Family: "Целото семејство е опфатено",
+      },
+      familyMembers: "Членови на семејството",
+      familySameAddress: "Сите членови мора да живеат на иста адреса",
+      youSave: "Заштедувате",
+      perYear: "/годишно",
+      basePrice: "Основна цена за 3 члена",
+    },
+    about: {
+      sectionSub: "За нас",
+      sectionTitle: "Нашата Заедница",
+      para1:
+        "Ние сме жива македонска православна заедница посветена на зачувување на нашата вера, јазик и културно наследство. Нашата црква служи како духовен дом и место за собирање на македонски семејства низ поголемата област на Брисбен.",
+      para2:
+        "Преку редовни служби, културни прослави, младински програми и настани на заедницата, создаваме гостопримлива средина за сите генерации да се поврзуваат, молат и растат заедно.",
+    },
+    footer: {
+      tagline:
+        "Зачувување на нашата македонска православна вера, култура и традиции за идните генерации.",
+      quickLinks: "Брзи Врски",
+      members: "Членови",
+      contact: "Контакт",
+      rights:
+        "© 2026 Македонска Заедница на Брисбен. Сите права задржани.",
+      links: {
+        home: "Почетна",
+        events: "Настани",
+        noticeBoard: "Огласна Табла",
+        hallHire: "Изнајмување Сала",
+        about: "За Нас",
+        signIn: "Влез",
+        joinNow: "Зачлени се",
+        memberEvents: "Настани за членови",
+        myProfile: "Мој профил",
+      },
+    },
+    calendar: {
+      pageTitle: "Календар на заедницата",
+      pageSub: "Претстојни настани, служби и собири на заедницата",
+      bookHall: "Закажи Сала",
+      bookHallSub: "Достапна за приватно изнајмување — членовите добиваат 20% попуст",
+      membersOnly: "Само за членови",
+      reserved: "Резервирано",
+      prevMonth: "←",
+      nextMonth: "→",
+      viewDetails: "Погледни детали",
+    },
+  },
+};

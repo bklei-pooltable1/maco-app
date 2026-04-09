@@ -2,19 +2,22 @@ import communityImg from "../../assets/community-image.webp";
 import Section from "../ui/Section";
 import SectionTitle from "../ui/SectionTitle";
 import { C, body } from "../../theme";
+import { useLang } from "../../context/LangContext";
 
 export default function AboutSection() {
+  const { t } = useLang();
+
   return (
     <Section bg={C.white}>
       <div id="about" style={{ scrollMarginTop: 60 }}/>
       <div className="about-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 48, alignItems: "center" }}>
         <div>
-          <SectionTitle sub="About Us">Our Community</SectionTitle>
+          <SectionTitle sub={t("about.sectionSub")}>{t("about.sectionTitle")}</SectionTitle>
           <p style={{ fontSize: 14, color: C.textMid, lineHeight: 1.8, margin: "0 0 16px", fontFamily: body }}>
-            We are a vibrant Macedonian Orthodox community dedicated to preserving our faith, language, and cultural heritage. Our church serves as a spiritual home and gathering place for Macedonian families across the greater Brisbane area.
+            {t("about.para1")}
           </p>
           <p style={{ fontSize: 14, color: C.textMid, lineHeight: 1.8, margin: 0, fontFamily: body }}>
-            Through regular services, cultural celebrations, youth programs, and community events, we create a welcoming environment for all generations to connect, worship, and grow together.
+            {t("about.para2")}
           </p>
         </div>
         <img
