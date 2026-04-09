@@ -67,7 +67,7 @@ function OverviewSection({ member, events, rsvps, setSection }) {
             </span>
           </div>
         </div>
-        <div style={{ width: 64, height: 64, borderRadius: "50%", background: C.goldBright, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, fontWeight: 700, color: C.maroonDeep, fontFamily: display }}>
+        <div className="welcome-banner-avatar" style={{ width: 64, height: 64, borderRadius: "50%", background: C.goldBright, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, fontWeight: 700, color: C.maroonDeep, fontFamily: display }}>
           {member.fullName.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
         </div>
       </div>
@@ -321,7 +321,7 @@ function AddFamilyMemberSection({ member, updateMember }) {
       ) : (
         <div style={{ marginTop: 12, border: `1px solid ${C.border}`, padding: 18 }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: C.textDark, fontFamily: body, marginBottom: 14 }}>New Family Member Details</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
+          <div className="modal-grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
             <div>
               <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: C.textLight, fontFamily: body, marginBottom: 5, textTransform: "uppercase" }}>Full Name *</label>
               <input style={{ width: "100%", padding: "9px 12px", border: `1px solid ${C.border}`, borderRadius: 0, fontSize: 13, fontFamily: body, color: C.textDark, background: C.white, boxSizing: "border-box" }} value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="Full name"/>
@@ -514,7 +514,7 @@ function CalendarSection({ events, rsvps, toggleRsvp }) {
                       {rsvpd ? "✓ RSVP'd — Remove" : "RSVP to this Event"}
                     </button>
                     {/* Calendar export buttons */}
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+                    <div className="cal-add-buttons" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
                       <button
                         onClick={() => downloadICS(buildICS([e]), `${e.title.replace(/\s+/g, "-")}.ics`)}
                         style={{ padding: "7px 6px", border: `1px solid ${C.border}`, background: C.cream, borderRadius: 0, fontSize: 11, cursor: "pointer", fontFamily: body, color: C.textMid, fontWeight: 600 }}
@@ -816,7 +816,7 @@ export default function MemberDashboard() {
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ color: C.goldBright }}><SunIcon s={20}/></span>
-          <span style={{ color: C.white, fontWeight: 700, fontSize: 14, fontFamily: display, letterSpacing: 1 }}>Macedonian Community of Brisbane</span>
+          <span className="nav-brand-name" style={{ color: C.white, fontWeight: 700, fontSize: 14, fontFamily: display, letterSpacing: 1 }}>Macedonian Community of Brisbane</span>
           <span className="member-top-nav-subtitle" style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", marginLeft: 8, padding: "3px 10px", background: "rgba(255,255,255,0.08)", fontWeight: 600, fontFamily: body }}>
             Member Portal
           </span>

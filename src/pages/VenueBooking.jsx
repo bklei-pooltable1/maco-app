@@ -136,7 +136,7 @@ export default function VenueBooking() {
 
       {/* Pricing info */}
       {!isAdmin && (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 10, marginBottom: 24 }}>
+        <div className="analytics-stat-cards" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 10, marginBottom: 24 }}>
           {[
             { label: "Full Day (Member)", price: `$${PRICING.full_day_member}` },
             { label: "Half Day (Member)", price: `$${PRICING.half_day_member}` },
@@ -165,7 +165,7 @@ export default function VenueBooking() {
         <div style={{ background: C.white, border: `1px solid ${C.border}`, padding: 24, marginBottom: 24 }}>
           <h3 style={{ fontSize: 16, fontWeight: 700, color: C.textDark, margin: "0 0 16px", fontFamily: display, letterSpacing: 1 }}>Booking Request</h3>
           <form onSubmit={handleSubmit}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
+            <div className="modal-grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
               <div>
                 <label style={labelStyle}>Family Name</label>
                 <input type="text" style={inputStyle} value={form.family_name} onChange={(e) => setForm({ ...form, family_name: e.target.value })} placeholder={profile?.full_name}/>
@@ -233,7 +233,7 @@ export default function VenueBooking() {
       ) : bookings.length === 0 ? (
         <p style={{ color: C.textLight, fontFamily: body }}>No bookings yet.</p>
       ) : (
-        <div style={{ background: C.white, borderRadius: 0, border: `1px solid ${C.border}`, overflow: "hidden" }}>
+        <div className="table-scroll-container" style={{ background: C.white, borderRadius: 0, border: `1px solid ${C.border}`, overflow: "hidden" }}>
           <div style={{ display: "grid", gridTemplateColumns: isAdmin ? "1.2fr 1fr 1fr 0.8fr 0.8fr 1fr" : "1fr 1fr 1fr 0.8fr", padding: "10px 16px", background: C.maroon, gap: 8 }}>
             {(isAdmin ? ["Requested By", "Date", "Time", "Amount", "Status", "Actions"] : ["Date", "Time", "Purpose", "Status"]).map((h) => (
               <span key={h} style={{ fontSize: 11, fontWeight: 700, color: C.white, textTransform: "uppercase", letterSpacing: 0.5, fontFamily: body }}>{h}</span>

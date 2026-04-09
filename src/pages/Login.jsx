@@ -94,7 +94,7 @@ export default function Login() {
       <div style={{ background: C.maroon, padding: "0 24px", height: 52, display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: `2px solid ${C.goldBright}` }}>
         <Link to="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
           <span style={{ color: C.goldBright }}><SunIcon s={20}/></span>
-          <span style={{ color: C.white, fontWeight: 700, fontSize: 14, fontFamily: display, letterSpacing: 1 }}>
+          <span className="nav-brand-name" style={{ color: C.white, fontWeight: 700, fontSize: 14, fontFamily: display, letterSpacing: 1 }}>
             Macedonian Community of Brisbane
           </span>
         </Link>

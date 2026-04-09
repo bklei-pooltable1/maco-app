@@ -449,7 +449,7 @@ export default function SignUp() {
       {/* Header */}
       <div className="signup-header" style={{ background: C.maroon, padding: "18px 48px", display: "flex", alignItems: "center", gap: 12, position: "fixed", top: 36, left: 0, right: 0, zIndex: 100, height: 52, boxSizing: "border-box", borderBottom: `2px solid ${C.goldBright}` }}>
         <span style={{ color: C.goldBright }}><SunIcon s={20}/></span>
-        <span style={{ color: C.white, fontWeight: 700, fontSize: 14, fontFamily: display, letterSpacing: 1 }}>Macedonian Community of Brisbane</span>
+        <span className="nav-brand-name" style={{ color: C.white, fontWeight: 700, fontSize: 14, fontFamily: display, letterSpacing: 1 }}>Macedonian Community of Brisbane</span>
         <span className="signup-header-title" style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginLeft: 8, fontFamily: body }}>New Member Registration</span>
         <div style={{ marginLeft: "auto" }}>
           <button onClick={() => navigate("/")} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.5)", cursor: "pointer", fontSize: 12, fontFamily: body, fontWeight: 500 }}>

@@ -37,7 +37,7 @@ const labelStyle = { display: "block", fontSize: 11, fontWeight: 600, color: C.t
 function Modal({ title, onClose, children }) {
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-      <div style={{ background: C.white, width: "100%", maxWidth: 560, maxHeight: "85vh", overflow: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.3)" }}>
+      <div className="modal-inner" style={{ background: C.white, width: "100%", maxWidth: 560, maxHeight: "85vh", overflow: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.3)" }}>
         <div style={{ padding: "18px 24px", borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", position: "sticky", top: 0, background: C.white, zIndex: 1 }}>
           <h3 style={{ fontFamily: display, fontSize: 17, color: C.textDark, margin: 0, letterSpacing: 0.5 }}>{title}</h3>
           <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 20, color: C.textLight, padding: "0 4px" }}>×</button>
@@ -165,7 +165,7 @@ function MembersTab({ members, addMember, updateMember }) {
       {/* Add Member Modal */}
       {showAdd && (
         <Modal title="Add Member" onClose={() => setShowAdd(false)}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          <div className="modal-grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
             {[["firstName", "First Name"], ["lastName", "Last Name"], ["email", "Email"], ["phone", "Phone"], ["dateOfBirth", "Date of Birth", "date"], ["suburb", "Suburb"]].map(([key, label, type = "text"]) => (
               <div key={key}>
                 <label style={labelStyle}>{label}</label>
@@ -211,7 +211,7 @@ function MembersTab({ members, addMember, updateMember }) {
           {editMember
             ? (
               <div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                <div className="modal-grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
                   {[["firstName", "First Name"], ["lastName", "Last Name"], ["email", "Email"], ["phone", "Phone"], ["suburb", "Suburb"]].map(([key, label]) => (
                     <div key={key}>
                       <label style={labelStyle}>{label}</label>
@@ -317,7 +317,7 @@ function AnalyticsTab({ members }) {
       </div>
 
       {/* Metric cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 28 }}>
+      <div className="analytics-stat-cards" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 28 }}>
         {[
           { label: "Total Members", value: members.length, color: C.maroon, prefix: "" },
           { label: "Active Subscriptions", value: active, color: C.green, prefix: "" },
@@ -331,7 +331,7 @@ function AnalyticsTab({ members }) {
         ))}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }}>
+      <div className="analytics-charts-top" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }}>
         {/* Age Distribution */}
         <div style={{ background: C.white, border: `1px solid ${C.border}`, padding: 24 }}>
           <div style={{ fontFamily: display, fontSize: 15, color: C.textDark, marginBottom: 20, letterSpacing: 0.5 }}>Age Distribution</div>
@@ -365,7 +365,7 @@ function AnalyticsTab({ members }) {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+      <div className="analytics-charts-bottom" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
         {/* Suburb breakdown */}
         <div style={{ background: C.white, border: `1px solid ${C.border}`, padding: 24 }}>
           <div style={{ fontFamily: display, fontSize: 15, color: C.textDark, marginBottom: 20, letterSpacing: 0.5 }}>Members by Suburb</div>
@@ -455,7 +455,7 @@ function EventsTab({ events, addEvent, updateEvent, deleteEvent }) {
       </div>
 
       <div className="events-layout" style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 20 }}>
-        <div style={{ background: C.white, border: `1px solid ${C.border}`, padding: 20 }}>
+        <div className="admin-cal-panel" style={{ background: C.white, border: `1px solid ${C.border}`, padding: 20 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
             <button onClick={prevMonth} style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 0, padding: "6px 14px", cursor: "pointer", fontFamily: body, fontSize: 13 }}>←</button>
             <span style={{ fontFamily: display, fontSize: 18, color: C.textDark, letterSpacing: 1 }}>{MONTHS[month]} {year}</span>
@@ -483,7 +483,7 @@ function EventsTab({ events, addEvent, updateEvent, deleteEvent }) {
           </div>
         </div>
 
-        <div>
+        <div className="admin-events-panel">
           {selectedEvents.length === 0
             ? (
               <div>
@@ -526,7 +526,7 @@ function EventsTab({ events, addEvent, updateEvent, deleteEvent }) {
 
       {showForm && (
         <Modal title={editingEvent ? "Edit Event" : "Add Event"} onClose={() => { setShowForm(false); setEditingEvent(null); }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          <div className="modal-grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
             <div style={{ gridColumn: "1 / -1" }}>
               <label style={labelStyle}>Event Name *</label>
               <input style={inputStyle} value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} placeholder="e.g. Sunday Divine Liturgy"/>
@@ -614,14 +614,14 @@ function NoticeBoardTab({ notices, addNotice, updateNotice, deleteNotice, toggle
 
       {sorted.map(n => (
         <div key={n.id} style={{ background: C.white, border: `1px solid ${C.border}`, padding: "20px 24px", marginBottom: 12, borderLeft: n.pinned ? `3px solid ${C.maroon}` : "none" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+          <div className="notice-card-inner" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <div style={{ flex: 1 }}>
               {n.pinned && <div style={{ fontSize: 10, fontWeight: 700, color: C.maroon, fontFamily: body, letterSpacing: 1, marginBottom: 4, textTransform: "uppercase" }}>📌 Pinned</div>}
               <div style={{ fontSize: 16, fontWeight: 600, color: C.textDark, fontFamily: body, marginBottom: 8 }}>{n.title}</div>
               <p style={{ fontSize: 13, color: C.textMid, lineHeight: 1.7, fontFamily: body, marginBottom: 8 }}>{n.body}</p>
               <div style={{ fontSize: 12, color: C.textLight, fontFamily: body }}>Posted by {n.author} · {n.postedAt}</div>
             </div>
-            <div style={{ display: "flex", gap: 8, marginLeft: 16, flexShrink: 0 }}>
+            <div className="notice-card-actions" style={{ display: "flex", gap: 8, marginLeft: 16, flexShrink: 0 }}>
               <button onClick={() => togglePinNotice(n.id)} title={n.pinned ? "Unpin" : "Pin"} style={{ background: n.pinned ? "rgba(140,26,17,0.08)" : C.cream, border: `1px solid ${C.border}`, borderRadius: 0, padding: "6px 12px", cursor: "pointer", fontSize: 12, fontFamily: body, color: n.pinned ? C.maroon : C.textLight }}>
                 {n.pinned ? "📌 Pinned" : "📌 Pin"}
               </button>
@@ -749,7 +749,7 @@ function HallHireTab({ hallHireBookings, updateBookingStatus, blockedDates, bloc
       {showCreate && (
         <div style={{ background: C.white, border: `1px solid ${C.border}`, padding: "22px 24px", marginBottom: 24 }}>
           <div style={{ fontFamily: display, fontSize: 15, color: C.textDark, marginBottom: 16, letterSpacing: 0.5 }}>New Booking</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
+          <div className="admin-hall-create-form" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
             <div>
               <label style={labelStyle}>Booking Name *</label>
               <input style={inputStyle} value={form.bookingName} onChange={e => setForm(f => ({ ...f, bookingName: e.target.value }))} placeholder="e.g. Petrov Family"/>
@@ -793,7 +793,7 @@ function HallHireTab({ hallHireBookings, updateBookingStatus, blockedDates, bloc
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
+      <div className="admin-hall-layout" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
         {/* Calendar */}
         <div style={{ background: C.white, border: `1px solid ${C.border}`, padding: 20 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
@@ -828,7 +828,7 @@ function HallHireTab({ hallHireBookings, updateBookingStatus, blockedDates, bloc
         </div>
 
         {/* Stats */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, alignContent: "start" }}>
+        <div className="admin-hall-stats" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, alignContent: "start" }}>
           {[
             { label: "Total Enquiries", value: hallHireBookings.length, color: C.maroon },
             { label: "Pending", value: hallHireBookings.filter(b => b.status === "pending").length, color: "#b8911f" },
@@ -848,13 +848,13 @@ function HallHireTab({ hallHireBookings, updateBookingStatus, blockedDates, bloc
       {hallHireBookings.length === 0 && <p style={{ color: C.textLight, fontSize: 13, fontFamily: body }}>No enquiries yet.</p>}
       {hallHireBookings.map(b => (
         <div key={b.id} style={{ background: C.white, border: `1px solid ${C.border}`, padding: "18px 22px", marginBottom: 12 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+          <div className="admin-booking-card" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <div style={{ flex: 1 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8, flexWrap: "wrap" }}>
                 <span style={{ fontSize: 15, fontWeight: 600, color: C.textDark, fontFamily: body }}>{b.name}</span>
                 <span style={{ padding: "3px 12px", background: statusBg[b.status] || C.cream, color: statusColor[b.status] || C.textMid, fontSize: 11, fontWeight: 700, fontFamily: body, textTransform: "uppercase", letterSpacing: 0.5 }}>{b.status}</span>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, auto)", gap: "4px 24px", marginBottom: 8 }}>
+              <div className="admin-booking-details" style={{ display: "grid", gridTemplateColumns: "repeat(3, auto)", gap: "4px 24px", marginBottom: 8 }}>
                 {[["📅 Date", b.dateDisplay || b.date], ["🎉 Event", b.eventType], ["👥 Guests", b.expectedGuests]].map(([k, v]) => (
                   <div key={k} style={{ fontSize: 12, fontFamily: body }}>
                     <span style={{ color: C.textLight }}>{k}: </span>
@@ -868,7 +868,7 @@ function HallHireTab({ hallHireBookings, updateBookingStatus, blockedDates, bloc
               {b.notes && <p style={{ fontSize: 12, color: C.textMid, fontFamily: body, marginTop: 8, padding: "10px 12px", background: C.cream, lineHeight: 1.5 }}>{b.notes}</p>}
               <div style={{ fontSize: 11, color: C.textLight, fontFamily: body, marginTop: 8 }}>Submitted {b.submittedAt}</div>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginLeft: 20 }}>
+            <div className="admin-booking-card-actions" style={{ display: "flex", flexDirection: "column", gap: 8, marginLeft: 20 }}>
               {b.status !== "approved" && (
                 <button onClick={() => updateBookingStatus(b.id, "approved")} style={{ padding: "8px 16px", background: C.greenLight, border: `1px solid ${C.green}`, borderRadius: 0, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: body, color: C.green }}>
                   ✓ Approve
@@ -909,7 +909,7 @@ export default function AdminDashboard() {
       <div style={{ background: C.maroon, padding: "0 24px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 52, borderBottom: `2px solid ${C.goldBright}`, position: "sticky", top: 36, zIndex: 100 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ color: C.goldBright }}><SunIcon s={20}/></span>
-          <span style={{ color: C.white, fontWeight: 700, fontSize: 14, fontFamily: display, letterSpacing: 1 }}>Macedonian Community of Brisbane</span>
+          <span className="nav-brand-name" style={{ color: C.white, fontWeight: 700, fontSize: 14, fontFamily: display, letterSpacing: 1 }}>Macedonian Community of Brisbane</span>
           <span className="admin-top-nav-title" style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", marginLeft: 8, padding: "3px 10px", background: "rgba(255,255,255,0.08)", fontWeight: 600, fontFamily: body }}>Committee Admin</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>

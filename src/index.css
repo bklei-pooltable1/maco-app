@@ -35,6 +35,15 @@ html, body {
     display: flex !important;
   }
 
+  /* === Nav brand name — truncate on small screens === */
+  .nav-brand-name {
+    max-width: 150px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    font-size: 12px !important;
+  }
+
   /* === Hero === */
   .hero-inner {
     padding: 0 16px !important;
@@ -167,8 +176,12 @@ html, body {
     gap: 16px !important;
     padding: 20px 16px !important;
   }
+  /* Hide avatar in welcome banner on mobile to save space */
+  .welcome-banner-avatar {
+    display: none !important;
+  }
   .stats-grid-3 {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: 1fr 1fr !important;
     gap: 10px !important;
   }
   .calendar-layout {
@@ -190,6 +203,10 @@ html, body {
     align-items: flex-start !important;
     gap: 10px !important;
   }
+  /* Calendar add-to-calendar buttons */
+  .cal-add-buttons {
+    grid-template-columns: 1fr !important;
+  }
 
   /* ─── Admin Dashboard ──────────────────────────────────────────────────── */
   .admin-tab-bar {
@@ -201,6 +218,10 @@ html, body {
   }
   .admin-tab-bar::-webkit-scrollbar {
     display: none;
+  }
+  .admin-tab-bar button {
+    padding: 12px 14px !important;
+    font-size: 12px !important;
   }
   .admin-content {
     padding: 16px !important;
@@ -215,6 +236,13 @@ html, body {
   .events-layout {
     grid-template-columns: 1fr !important;
     gap: 16px !important;
+  }
+  /* Hide calendar grid in admin events tab on mobile — show list view instead */
+  .admin-cal-panel {
+    display: none !important;
+  }
+  .admin-events-panel {
+    /* full width list view */
   }
   .admin-member-header {
     flex-wrap: wrap !important;
@@ -232,9 +260,98 @@ html, body {
     min-width: 0 !important;
   }
 
+  /* Analytics stat cards — 2x2 grid */
+  .analytics-stat-cards {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  /* Analytics chart rows — single column */
+  .analytics-charts-top,
+  .analytics-charts-bottom {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Admin Hall Hire tab */
+  .admin-hall-layout {
+    grid-template-columns: 1fr !important;
+  }
+  .admin-hall-stats {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .admin-booking-card {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+  .admin-booking-card-actions {
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    margin-left: 0 !important;
+    gap: 8px !important;
+  }
+  .admin-booking-card-actions button {
+    flex: 1 !important;
+    min-width: 80px !important;
+  }
+  .admin-booking-details {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px 12px !important;
+  }
+  .admin-hall-create-form {
+    grid-template-columns: 1fr !important;
+  }
+  /* Notice board action buttons */
+  .notice-card-actions {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    margin-left: 0 !important;
+    margin-top: 10px !important;
+  }
+  .notice-card-inner {
+    flex-direction: column !important;
+  }
+
+  /* ─── Public Calendar ──────────────────────────────────────────────────── */
+  .public-cal-layout {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  .cal-page-title {
+    padding: 20px 16px 16px !important;
+  }
+  .cal-page-title h1 {
+    font-size: 26px !important;
+  }
+  .cal-main-content {
+    padding: 16px 14px !important;
+  }
+  .hire-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .cal-hire-header {
+    padding: 20px 20px !important;
+  }
+  .cal-hire-header h2 {
+    font-size: 20px !important;
+  }
+  .cal-hire-body {
+    padding: 20px 20px !important;
+  }
+  /* Hall hire submit button full width on mobile */
+  .cal-hire-submit {
+    width: 100% !important;
+    text-align: center !important;
+  }
+
   /* ─── General ──────────────────────────────────────────────────────────── */
   .tap-target {
     min-height: 44px !important;
     min-width: 44px !important;
+  }
+  /* Modal sizing on mobile */
+  .modal-inner {
+    max-height: 92vh !important;
+    max-width: calc(100vw - 24px) !important;
+  }
+  .modal-grid-2col {
+    grid-template-columns: 1fr !important;
   }
 }

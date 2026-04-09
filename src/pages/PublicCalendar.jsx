@@ -92,7 +92,7 @@ function HallHireForm({ onSubmit }) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
+      <div className="hire-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
         <div>
           <label style={labelStyle}>Your Name *</label>
           <input style={{ ...inputStyle, borderColor: errors.name ? C.red : C.border }} value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="Full name"/>
@@ -130,7 +130,7 @@ function HallHireForm({ onSubmit }) {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
+      <div className="hire-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
         <div>
           <label style={labelStyle}>Occasion / Event Type *</label>
           <input style={{ ...inputStyle, borderColor: errors.eventType ? C.red : C.border }} value={form.eventType} onChange={e => setForm(p => ({ ...p, eventType: e.target.value }))} placeholder="e.g. Birthday, Wedding, Meeting"/>
@@ -151,7 +151,7 @@ function HallHireForm({ onSubmit }) {
         💡 Hall capacity: up to 150 guests. Members receive a <strong>20% discount</strong>. Bookings are subject to committee approval.
       </div>
 
-      <button type="submit" style={{ padding: "13px 32px", background: C.maroon, color: C.white, border: "none", borderRadius: 0, fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: body }}>
+      <button type="submit" className="cal-hire-submit" style={{ padding: "13px 32px", background: C.maroon, color: C.white, border: "none", borderRadius: 0, fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: body }}>
         Submit Hall Hire Enquiry
       </button>
       <div style={{ marginTop: 12, fontSize: 12, color: C.textLight, fontFamily: body }}>
@@ -220,7 +220,7 @@ export default function PublicCalendar() {
       </div>
 
       {/* Page title */}
-      <div style={{ background: C.white, borderBottom: `1px solid ${C.border}`, padding: "32px 24px 28px" }}>
+      <div className="cal-page-title" style={{ background: C.white, borderBottom: `1px solid ${C.border}`, padding: "32px 24px 28px" }}>
         <div style={{ maxWidth: 960, margin: "0 auto" }}>
           <div style={{ fontSize: 10, fontWeight: 700, color: C.gold, letterSpacing: 2, textTransform: "uppercase", fontFamily: body, marginBottom: 10 }}>
             {t("events.sectionSub")}
@@ -234,10 +234,10 @@ export default function PublicCalendar() {
         </div>
       </div>
 
-      <div style={{ maxWidth: 960, margin: "0 auto", padding: "32px 24px" }}>
+      <div className="cal-main-content" style={{ maxWidth: 960, margin: "0 auto", padding: "32px 24px" }}>
 
         {/* Calendar grid + event panel */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 28, marginBottom: 48 }}>
+        <div className="public-cal-layout" style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 28, marginBottom: 48 }}>
           {/* Calendar */}
           <div style={{ background: C.white, border: `1px solid ${C.border}`, padding: 24 }}>
             {/* Month nav */}
@@ -392,7 +392,7 @@ export default function PublicCalendar() {
 
         {/* Hall Hire Section */}
         <div id="book-hall" style={{ background: C.white, border: `1px solid ${C.border}`, overflow: "hidden" }}>
-          <div style={{ background: C.maroon, padding: "24px 32px" }}>
+          <div className="cal-hire-header" style={{ background: C.maroon, padding: "24px 32px" }}>
             <h2 style={{ fontFamily: headingFont, fontSize: 26, color: C.white, letterSpacing: 1, margin: "0 0 6px" }}>
               {t("calendar.bookHall")}
             </h2>
@@ -400,7 +400,7 @@ export default function PublicCalendar() {
               {t("calendar.bookHallSub")}
             </p>
           </div>
-          <div style={{ padding: "28px 32px" }}>
+          <div className="cal-hire-body" style={{ padding: "28px 32px" }}>
             <HallHireForm onSubmit={handleHireSubmit}/>
           </div>
         </div>
