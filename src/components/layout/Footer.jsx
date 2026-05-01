@@ -20,7 +20,7 @@ export default function Footer() {
     { label: t("footer.links.home"),        action: () => navigate("/") },
     { label: t("footer.links.events"),      action: () => scrollTo("events") },
     { label: t("footer.links.noticeBoard"), action: () => scrollTo("notices") },
-    { label: t("footer.links.hallHire"),    action: () => navigate("/calendar#book-hall") },
+    { label: t("footer.links.hallHire"),    action: () => navigate("/hall-hire") },
     { label: t("footer.links.about"),       action: () => scrollTo("about") },
   ];
 

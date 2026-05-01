@@ -1,0 +1,300 @@
+/* MACO brand overrides for react-big-calendar */
+/* Hex values must stay in sync with src/theme.js — see C.* tokens */
+/*
+  C.cream      = #FBF8F1    C.maroon     = #8C1A11
+  C.maroonDark = #6B1410    C.gold       = #D8A737
+  C.goldBright = #EABF3D    C.goldLight  = #F5E6B8
+  C.textDark   = #2D1810    C.textMid    = #6B5248
+  C.textLight  = #A08878    C.border     = #E8DDD3
+  C.white      = #ffffff
+*/
+
+/* ─── Nuclear border-radius reset ──────────────────────────────────────── */
+.rbc-calendar *,
+.rbc-calendar *::before,
+.rbc-calendar *::after {
+  border-radius: 0 !important;
+}
+
+/* ─── Root ──────────────────────────────────────────────────────────────── */
+.rbc-calendar {
+  background: #FBF8F1;
+  font-family: 'Montserrat', -apple-system, sans-serif;
+}
+
+/* ─── Toolbar ───────────────────────────────────────────────────────────── */
+.rbc-toolbar {
+  background: #ffffff;
+  padding: 12px 16px;
+  border-bottom: 1px solid #E8DDD3;
+  margin-bottom: 0;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rbc-toolbar .rbc-toolbar-label {
+  font-family: 'Montserrat', -apple-system, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #2D1810;
+  letter-spacing: 0.5px;
+}
+
+.rbc-toolbar button {
+  font-family: 'Montserrat', -apple-system, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #E8DDD3;
+  background: #ffffff;
+  color: #6B5248;
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.rbc-toolbar button:hover {
+  background: #8C1A11;
+  color: #ffffff;
+  border-color: #8C1A11;
+}
+
+.rbc-toolbar button:focus {
+  outline: 2px solid #EABF3D;
+  outline-offset: -2px;
+  z-index: 1;
+  position: relative;
+}
+
+.rbc-toolbar button.rbc-active {
+  background: #8C1A11;
+  color: #ffffff;
+  border-color: #8C1A11;
+}
+
+.rbc-toolbar button.rbc-active:hover {
+  background: #6B1410;
+  border-color: #6B1410;
+}
+
+.rbc-btn-group {
+  display: flex;
+}
+
+.rbc-btn-group > button:not(:first-child) {
+  margin-left: -1px;
+}
+
+/* ─── Month view ────────────────────────────────────────────────────────── */
+.rbc-month-view {
+  border: 1px solid #E8DDD3;
+}
+
+.rbc-month-row + .rbc-month-row {
+  border-top: 1px solid #E8DDD3;
+}
+
+.rbc-day-bg + .rbc-day-bg {
+  border-left: 1px solid #E8DDD3;
+}
+
+.rbc-off-range-bg {
+  background: rgba(139, 115, 105, 0.05);
+}
+
+/* dayPropGetter sets today to C.goldLight (#F5E6B8); this is a fallback */
+.rbc-today {
+  background-color: #F5E6B8 !important;
+}
+
+.rbc-header {
+  font-family: 'Montserrat', -apple-system, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  color: #A08878;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 8px 0;
+  border-bottom: 1px solid #E8DDD3;
+  background: #ffffff;
+}
+
+.rbc-header + .rbc-header {
+  border-left: 1px solid #E8DDD3;
+}
+
+.rbc-date-cell {
+  font-family: 'Montserrat', -apple-system, sans-serif;
+  font-size: 12px;
+  color: #2D1810;
+  padding: 4px 8px;
+  text-align: right;
+}
+
+.rbc-date-cell.rbc-now {
+  font-weight: 700;
+  color: #8C1A11;
+}
+
+.rbc-date-cell > a,
+.rbc-date-cell > a:visited {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ─── Events ────────────────────────────────────────────────────────────── */
+/* eventPropGetter handles per-category background and color in JS;
+   these rules handle layout, reset, and focus states */
+.rbc-event {
+  padding: 2px 6px;
+  font-family: 'Montserrat', -apple-system, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  border: none !important;
+  outline: none;
+}
+
+.rbc-event:focus,
+.rbc-event.rbc-selected {
+  outline: 2px solid #EABF3D !important;
+  outline-offset: 1px;
+}
+
+.rbc-event-label {
+  font-size: 11px;
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+.rbc-event-content {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.rbc-row-segment {
+  padding: 0 2px 2px;
+}
+
+.rbc-show-more {
+  font-family: 'Montserrat', -apple-system, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: #8C1A11;
+  background: transparent;
+  padding: 1px 4px;
+  cursor: pointer;
+  border: none;
+}
+
+.rbc-show-more:hover {
+  background: rgba(140, 26, 17, 0.07);
+  color: #6B1410;
+}
+
+/* ─── "+X more" overlay popup ───────────────────────────────────────────── */
+.rbc-overlay {
+  background: #ffffff;
+  border: 1px solid #E8DDD3;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  padding: 0;
+  z-index: 1000;
+}
+
+.rbc-overlay-header {
+  background: #FBF8F1;
+  border-bottom: 1px solid #E8DDD3;
+  padding: 9px 12px;
+  font-family: 'Montserrat', -apple-system, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: #2D1810;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* ─── Week / Day time views ─────────────────────────────────────────────── */
+.rbc-time-view {
+  border: 1px solid #E8DDD3;
+}
+
+.rbc-time-header-content {
+  border-left: 1px solid #E8DDD3;
+}
+
+.rbc-time-content {
+  border-top: 1px solid #E8DDD3;
+}
+
+.rbc-time-content > * + * > * {
+  border-left: 1px solid #E8DDD3;
+}
+
+.rbc-timeslot-group {
+  border-bottom: 1px solid #E8DDD3;
+  min-height: 40px;
+}
+
+.rbc-time-slot {
+  font-family: 'Montserrat', -apple-system, sans-serif;
+  font-size: 11px;
+  color: #A08878;
+}
+
+.rbc-current-time-indicator {
+  background: #8C1A11;
+}
+
+.rbc-allday-cell {
+  background: #ffffff;
+}
+
+/* ─── Agenda view ───────────────────────────────────────────────────────── */
+.rbc-agenda-view {
+  border: 1px solid #E8DDD3;
+}
+
+.rbc-agenda-view table.rbc-agenda-table {
+  border: none;
+  font-family: 'Montserrat', -apple-system, sans-serif;
+  font-size: 13px;
+}
+
+.rbc-agenda-view table.rbc-agenda-table thead > tr > th {
+  background: #FBF8F1;
+  padding: 8px 14px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #A08878;
+  border-bottom: 1px solid #E8DDD3;
+}
+
+.rbc-agenda-view table.rbc-agenda-table tbody > tr > td {
+  padding: 10px 14px;
+  border-bottom: 1px solid #E8DDD3;
+  color: #2D1810;
+}
+
+.rbc-agenda-date-cell,
+.rbc-agenda-time-cell {
+  white-space: nowrap;
+  font-size: 12px;
+  color: #6B5248;
+}
+
+.rbc-agenda-empty {
+  font-family: 'Montserrat', -apple-system, sans-serif;
+  font-size: 13px;
+  color: #A08878;
+  padding: 24px;
+  text-align: center;
+}
+
+/* ─── Slot selection (click-drag in week/day) ───────────────────────────── */
+.rbc-slot-selection {
+  background: rgba(216, 167, 55, 0.12);
+  border: 1px solid #D8A737;
+  font-family: 'Montserrat', -apple-system, sans-serif;
+  font-size: 12px;
+  color: #6B5248;
+}

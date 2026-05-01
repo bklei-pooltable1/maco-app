@@ -5,6 +5,7 @@ import {
   INITIAL_NOTICES,
   INITIAL_HALL_HIRE,
   DEMO_MEMBER,
+  DEMO_ADMIN,
 } from "../data/mockData";
 
 const DemoContext = createContext(null);
@@ -16,11 +17,13 @@ export function DemoProvider({ children }) {
   const [notices, setNotices] = useState(INITIAL_NOTICES);
   const [hallHireBookings, setHallHireBookings] = useState(INITIAL_HALL_HIRE);
   const [currentMember, setCurrentMember] = useState(DEMO_MEMBER);
+  const [currentAdmin, setCurrentAdmin] = useState(DEMO_ADMIN);
   const [rsvps, setRsvps] = useState({}); // { [eventId]: true }
+  const [notifications, setNotifications] = useState([]);
 
   // Members
   const addMember = (member) => {
-    const newMember = { ...member, id: `m${Date.now()}`, joinDate: new Date().toISOString().split("T")[0] };
+    const newMember = { ...member, id: `m${Date.now()}`, tier: member.tier ?? "general", joinDate: new Date().toISOString().split("T")[0] };
     setMembers((prev) => [newMember, ...prev]);
     return newMember;
   };
@@ -29,10 +32,15 @@ export function DemoProvider({ children }) {
     if (currentMember?.id === id) setCurrentMember((prev) => ({ ...prev, ...updates }));
   };
   const deleteMember = (id) => setMembers((prev) => prev.filter((m) => m.id !== id));
+  const updateMemberPosition = (memberId, { adminPosition, isSuperAdmin: isSA }) => {
+    const updates = { adminPosition: adminPosition ?? null, isSuperAdmin: isSA ?? false };
+    updateMember(memberId, updates);
+    if (currentAdmin?.id === memberId) setCurrentAdmin(prev => ({ ...prev, ...updates }));
+  };
 
   // Events
   const addEvent = (event) => {
-    const newEvent = { ...event, id: `ev${Date.now()}` };
+    const newEvent = { ...event, id: `ev${Date.now()}`, visibility: event.visibility ?? "general" };
     setEvents((prev) => [...prev, newEvent].sort((a, b) => a.date.localeCompare(b.date)));
     return newEvent;
   };
@@ -75,6 +83,19 @@ export function DemoProvider({ children }) {
     setRsvps((prev) => ({ ...prev, [eventId]: !prev[eventId] }));
   };
 
+  // Notifications
+  const addNotification = (notification) => {
+    const newNotification = {
+      ...notification,
+      id: `notif${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      recipientCount: notification.recipientCount ?? members.length,
+      triggeredBy: notification.triggeredBy ?? "Admin",
+    };
+    setNotifications((prev) => [newNotification, ...prev]);
+    return newNotification;
+  };
+
   // Half-day slot blocking: { date: ["morning"] | ["afternoon"] | ["morning","afternoon"] }
   // A date is "fully blocked" when both morning+afternoon are taken (or a fullday booking exists)
   const blockedSlots = {};
@@ -104,7 +125,10 @@ export function DemoProvider({ children }) {
       hallHireBookings, addHallHireBooking, updateBookingStatus,
       blockedDates, blockedSlots,
       currentMember, setCurrentMember,
+      currentAdmin, setCurrentAdmin,
+      updateMemberPosition,
       rsvps, toggleRsvp,
+      notifications, addNotification,
     }}>
       {children}
     </DemoContext.Provider>

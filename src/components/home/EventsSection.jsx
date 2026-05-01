@@ -5,12 +5,15 @@ import Badge from "../ui/Badge";
 import { C, body, display } from "../../theme";
 import { useDemo } from "../../context/DemoContext";
 import { useLang } from "../../context/LangContext";
+import { canSee } from "../../lib/tiers";
 
 export default function EventsSection() {
   const { events } = useDemo();
   const { t } = useLang();
   const today = new Date().toISOString().split("T")[0];
-  const upcomingEvents = events.filter(e => e.date >= today).slice(0, 6);
+  const upcomingEvents = events
+    .filter(e => e.date >= today && canSee("general", e.visibility ?? "general"))
+    .slice(0, 6);
 
   return (
     <>

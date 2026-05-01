@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useLang } from "../context/LangContext";
 import { C, body, display } from "../theme";
 import { SunIcon, HomeIcon, CalIcon, BellIcon, BuildingIcon, UsersIcon, LogOutIcon } from "../components/ui/Icons";
 import Badge from "../components/ui/Badge";
 import { useDemo } from "../context/DemoContext";
-import { getPricing, HALL_SLOTS } from "../data/mockData";
+import { getPricing } from "../data/mockData";
+import { canSee } from "../lib/tiers";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -564,221 +566,48 @@ function NoticeBoardSection({ notices }) {
 }
 
 // ─── Hall Hire ────────────────────────────────────────────────────────────────
-function HallHireSection({ blockedDates, blockedSlots, addHallHireBooking, member, hallHireBookings }) {
-  const today = new Date();
-  const [year, setYear] = useState(today.getFullYear());
-  const [month, setMonth] = useState(today.getMonth());
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [showForm, setShowForm] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [form, setForm] = useState({ eventType: "", guests: "", notes: "", slot: "fullday" });
+function HallHireSection() {
+  const navigate = useNavigate();
+  const { t } = useLang();
+  const { hallHireBookings, currentMember: member } = useDemo();
 
-  const cells = getCalendarDays(year, month);
-  const prevMonth = () => { if (month === 0) { setYear(y => y - 1); setMonth(11); } else setMonth(m => m - 1); setSelectedDate(null); setShowForm(false); };
-  const nextMonth = () => { if (month === 11) { setYear(y => y + 1); setMonth(0); } else setMonth(m => m + 1); setSelectedDate(null); setShowForm(false); };
-
-  // Pending bookings
-  const pendingDates = hallHireBookings.filter(b => b.status === "pending").map(b => b.date);
-
-  const getDateStatus = (day) => {
-    const iso = toISO(year, month, day);
-    if (blockedDates.includes(iso)) return "booked"; // fully booked (both AM+PM)
-    if (pendingDates.includes(iso)) return "pending";
-    const d = new Date(year, month, day);
-    if (d < today) return "past";
-    // Partially booked — still "available" but some slots taken
-    return "available";
-  };
-
-  // Which slots are still available for a date
-  const availableSlots = (iso) => {
-    const taken = blockedSlots[iso] || [];
-    return Object.keys(HALL_SLOTS).filter(s => {
-      if (s === "fullday") return !taken.includes("morning") && !taken.includes("afternoon");
-      return !taken.includes(s);
-    });
-  };
-
-  const handleSelectDay = (day) => {
-    const status = getDateStatus(day);
-    if (status === "booked" || status === "past") return;
-    const iso = toISO(year, month, day);
-    setSelectedDate(iso);
-    // Pre-select first available slot
-    const slots = availableSlots(iso);
-    setForm(f => ({ ...f, slot: slots[0] || "fullday" }));
-    setShowForm(true);
-    setSubmitted(false);
-  };
-
-  const handleSubmit = () => {
-    if (!form.eventType || !form.guests) return;
-    addHallHireBooking({
-      name: member.fullName,
-      email: member.email,
-      phone: member.phone,
-      date: selectedDate,
-      dateDisplay: selectedDate,
-      slot: form.slot,
-      eventType: form.eventType,
-      expectedGuests: parseInt(form.guests),
-      notes: form.notes,
-      memberId: member.id,
-    });
-    setSubmitted(true);
-    setForm({ eventType: "", guests: "", notes: "", slot: "fullday" });
-  };
-
-  return (
-    <SectionCard title="Hall Hire">
-      <div style={{ marginBottom: 20, padding: "12px 16px", background: C.goldMuted, border: `1px solid ${C.gold}`, fontSize: 12, fontFamily: body, color: C.textMid }}>
-        Select an available date below to submit a hire enquiry. Bookings are subject to committee approval.
-        <strong style={{ color: C.textDark }}> Members receive a 20% discount.</strong>
-      </div>
-
-      <div className="hall-hire-layout" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
-        {/* Calendar */}
-        <div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-            <button onClick={prevMonth} style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 0, padding: "6px 14px", cursor: "pointer", fontFamily: body, fontSize: 13 }}>←</button>
-            <span style={{ fontFamily: display, fontSize: 16, color: C.textDark }}>{MONTHS[month]} {year}</span>
-            <button onClick={nextMonth} style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 0, padding: "6px 14px", cursor: "pointer", fontFamily: body, fontSize: 13 }}>→</button>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2 }}>
-            {DAYS.map(d => <div key={d} style={{ textAlign: "center", fontSize: 9, fontWeight: 700, color: C.textLight, fontFamily: body, padding: "4px 0" }}>{d}</div>)}
-            {cells.map((day, i) => {
-              if (!day) return <div key={i}/>;
-              const status = getDateStatus(day);
-              const iso = toISO(year, month, day);
-              const isSelected = iso === selectedDate;
-              const slots = blockedSlots[iso] || [];
-              const mornBooked = slots.includes("morning");
-              const aftnBooked = slots.includes("afternoon");
-              const bg = isSelected ? C.maroon : status === "booked" ? "rgba(192,57,43,0.15)" : status === "pending" ? "rgba(216,167,55,0.15)" : status === "past" ? C.cream : C.white;
-              const color = isSelected ? C.white : status === "booked" ? C.red : status === "pending" ? "#b8911f" : status === "past" ? C.textLight : C.textDark;
-              const canClick = status === "available" || status === "pending";
-              return (
-                <div key={i} onClick={() => handleSelectDay(day)} style={{
-                  aspectRatio: "1", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start",
-                  background: bg, color, fontSize: 11, fontFamily: body,
-                  cursor: canClick ? "pointer" : "default",
-                  border: `1px solid ${isSelected ? C.maroon : C.border}`,
-                  fontWeight: isSelected ? 700 : 400,
-                  overflow: "hidden", position: "relative",
-                  paddingTop: 4,
-                }}>
-                  {/* Half-day slot indicators */}
-                  {(mornBooked || aftnBooked) && !isSelected && (
-                    <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", pointerEvents: "none" }}>
-                      <div style={{ flex: 1, background: mornBooked ? "rgba(192,57,43,0.15)" : "transparent" }}/>
-                      <div style={{ flex: 1, background: aftnBooked ? "rgba(192,57,43,0.15)" : "transparent" }}/>
-                    </div>
-                  )}
-                  <span style={{ position: "relative", zIndex: 1 }}>{day}</span>
-                  {(mornBooked || aftnBooked) && !isSelected && (
-                    <div style={{ fontSize: 7, color: C.red, fontWeight: 700, position: "relative", zIndex: 1, lineHeight: 1 }}>
-                      {mornBooked && aftnBooked ? "FULL" : mornBooked ? "AM" : "PM"}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-          <div style={{ marginTop: 12, display: "flex", gap: 16, flexWrap: "wrap" }}>
-            {[["Available", C.white, C.textDark], ["Selected", C.maroon, C.white], ["Pending", "rgba(216,167,55,0.15)", "#b8911f"], ["Booked", "rgba(192,57,43,0.1)", C.red]].map(([label, bg, fg]) => (
-              <div key={label} style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                <div style={{ width: 12, height: 12, background: bg, border: `1px solid ${C.border}` }}/>
-                <span style={{ fontSize: 10, color: C.textLight, fontFamily: body }}>{label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Booking form */}
-        <div>
-          {!showForm && !submitted && (
-            <div style={{ border: `1px dashed ${C.border}`, padding: 24, textAlign: "center", background: C.cream }}>
-              <div style={{ fontSize: 24, marginBottom: 8 }}>🏛️</div>
-              <div style={{ fontSize: 13, color: C.textLight, fontFamily: body }}>Click an available date to submit an enquiry</div>
-            </div>
-          )}
-          {showForm && !submitted && (
-            <div style={{ border: `1px solid ${C.border}`, padding: 20 }}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: C.textDark, fontFamily: body, marginBottom: 16 }}>Booking Enquiry — {selectedDate}</div>
-
-              {/* Slot selector */}
-              <div style={{ marginBottom: 14 }}>
-                <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: C.textMid, fontFamily: body, marginBottom: 8 }}>Booking Slot *</label>
-                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                  {availableSlots(selectedDate).map(slotKey => {
-                    const slot = HALL_SLOTS[slotKey];
-                    return (
-                      <label key={slotKey} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", padding: "8px 12px", border: `1px solid ${form.slot === slotKey ? C.maroon : C.border}`, background: form.slot === slotKey ? "rgba(140,26,17,0.05)" : C.white, fontSize: 13, fontFamily: body, color: C.textDark }}>
-                        <input type="radio" name="hire-slot" value={slotKey} checked={form.slot === slotKey} onChange={() => setForm(p => ({ ...p, slot: slotKey }))} style={{ accentColor: C.maroon }}/>
-                        <span style={{ fontWeight: 600 }}>{slot.label}</span>
-                        <span style={{ fontSize: 11, color: C.textLight, marginLeft: "auto" }}>{slot.hours} hours</span>
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div style={{ marginBottom: 14 }}>
-                <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: C.textMid, fontFamily: body, marginBottom: 5 }}>Event Type *</label>
-                <input style={{ width: "100%", padding: "9px 12px", border: `1px solid ${C.border}`, borderRadius: 0, fontSize: 13, fontFamily: body, boxSizing: "border-box" }} value={form.eventType} onChange={e => setForm(p => ({ ...p, eventType: e.target.value }))} placeholder="e.g. Birthday, Wedding, Meeting"/>
-              </div>
-              <div style={{ marginBottom: 14 }}>
-                <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: C.textMid, fontFamily: body, marginBottom: 5 }}>Expected Guests *</label>
-                <input style={{ width: "100%", padding: "9px 12px", border: `1px solid ${C.border}`, borderRadius: 0, fontSize: 13, fontFamily: body, boxSizing: "border-box" }} type="number" value={form.guests} onChange={e => setForm(p => ({ ...p, guests: e.target.value }))} placeholder="How many guests?"/>
-              </div>
-              <div style={{ marginBottom: 20 }}>
-                <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: C.textMid, fontFamily: body, marginBottom: 5 }}>Additional Notes</label>
-                <textarea style={{ width: "100%", padding: "9px 12px", border: `1px solid ${C.border}`, borderRadius: 0, fontSize: 13, fontFamily: body, minHeight: 80, boxSizing: "border-box", resize: "vertical" }} value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} placeholder="Any special requirements?"/>
-              </div>
-              <button onClick={handleSubmit} style={{ width: "100%", padding: "11px", background: C.maroon, color: C.white, border: "none", borderRadius: 0, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: body }}>
-                Submit Enquiry
-              </button>
-            </div>
-          )}
-          {submitted && (
-            <div style={{ border: `1px solid ${C.green}`, background: C.greenLight, padding: 24, textAlign: "center" }}>
-              <div style={{ fontSize: 28, marginBottom: 8 }}>✓</div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: C.green, fontFamily: body, marginBottom: 6 }}>Enquiry Submitted!</div>
-              <div style={{ fontSize: 13, color: C.textMid, fontFamily: body, marginBottom: 14 }}>Your booking request for <strong>{selectedDate}</strong> has been received. The committee will be in touch shortly.</div>
-              <button onClick={() => { setShowForm(false); setSubmitted(false); setSelectedDate(null); }} style={{ padding: "8px 18px", background: "transparent", border: `1px solid ${C.green}`, borderRadius: 0, fontSize: 12, color: C.green, cursor: "pointer", fontFamily: body }}>
-                Submit Another
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    </SectionCard>
-  );
-}
-
-// ─── My Bookings ──────────────────────────────────────────────────────────────
-function MyBookingsSection({ hallHireBookings, member }) {
   const myBookings = hallHireBookings.filter(b => b.memberId === member.id || b.name === member.fullName);
   const statusColor = { pending: "#b8911f", approved: C.green, declined: C.red };
   const statusBg = { pending: "rgba(216,167,55,0.1)", approved: C.greenLight, declined: "rgba(192,57,43,0.08)" };
 
   return (
-    <SectionCard title="My Hall Hire Bookings">
-      {myBookings.length === 0
-        ? <p style={{ color: C.textLight, fontSize: 13, fontFamily: body }}>No bookings submitted yet.</p>
-        : myBookings.map(b => (
-          <div key={b.id} className="my-booking-row" style={{ border: `1px solid ${C.border}`, padding: "16px 20px", marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: C.textDark, fontFamily: body, marginBottom: 4 }}>{b.eventType}</div>
-              <div style={{ fontSize: 12, color: C.textLight, fontFamily: body }}>{b.dateDisplay} · {b.expectedGuests} guests</div>
-              <div style={{ fontSize: 12, color: C.textLight, fontFamily: body, marginTop: 2 }}>Submitted {b.submittedAt}</div>
+    <SectionCard title={t("hallHire.memberCtaTitle")}>
+      <p style={{ fontSize: 14, color: C.textMid, fontFamily: body, lineHeight: 1.7, marginBottom: 20 }}>
+        {t("hallHire.memberCtaBody")}
+      </p>
+      <button
+        onClick={() => navigate("/hall-hire")}
+        style={{ padding: "12px 28px", background: C.maroon, color: C.white, border: "none", borderRadius: 0, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: body }}
+      >
+        {t("hallHire.memberCtaButton")}
+      </button>
+
+      <div style={{ marginTop: 28, paddingTop: 24, borderTop: `1px solid ${C.border}` }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: C.textLight, fontFamily: body, marginBottom: 14, textTransform: "uppercase", letterSpacing: 0.5 }}>
+          {t("hallHire.yourBookings")}
+        </div>
+        {myBookings.length === 0 ? (
+          <p style={{ color: C.textLight, fontSize: 13, fontFamily: body }}>{t("hallHire.noBookings")}</p>
+        ) : (
+          myBookings.map(b => (
+            <div key={b.id} className="my-booking-row" style={{ border: `1px solid ${C.border}`, padding: "16px 20px", marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: C.textDark, fontFamily: body, marginBottom: 4 }}>{b.eventType}</div>
+                <div style={{ fontSize: 12, color: C.textLight, fontFamily: body }}>{b.dateDisplay} · {b.expectedGuests} guests</div>
+                <div style={{ fontSize: 12, color: C.textLight, fontFamily: body, marginTop: 2 }}>Submitted {b.submittedAt}</div>
+              </div>
+              <div style={{ padding: "6px 14px", background: statusBg[b.status] || C.cream, fontSize: 12, fontWeight: 700, color: statusColor[b.status] || C.textMid, fontFamily: body, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                {b.status}
+              </div>
             </div>
-            <div style={{ padding: "6px 14px", background: statusBg[b.status] || C.cream, fontSize: 12, fontWeight: 700, color: statusColor[b.status] || C.textMid, fontFamily: body, textTransform: "uppercase", letterSpacing: 0.5 }}>
-              {b.status}
-            </div>
-          </div>
-        ))
-      }
+          ))
+        )}
+      </div>
     </SectionCard>
   );
 }
@@ -791,16 +620,19 @@ const NAV_ITEMS = [
   { key: "calendar", icon: <CalIcon/>, label: "Calendar" },
   { key: "notices", icon: <BellIcon/>, label: "Notice Board" },
   { key: "hallhire", icon: <BuildingIcon/>, label: "Hall Hire" },
-  { key: "bookings", icon: "📋", label: "My Bookings" },
 ];
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function MemberDashboard() {
   const navigate = useNavigate();
-  const { currentMember, updateMember, events, notices, hallHireBookings, blockedDates, blockedSlots, addHallHireBooking, rsvps, toggleRsvp, setRole } = useDemo();
+  const { currentMember, updateMember, events, notices, rsvps, toggleRsvp, setRole } = useDemo();
   const [section, setSection] = useState("overview");
+  const { lang, setLang } = useLang();
 
   const member = currentMember;
+  const visibleEvents = events.filter(e =>
+    canSee(currentMember?.tier ?? "general", e.visibility ?? "general")
+  );
 
   const handleSignOut = () => { setRole("public"); navigate("/"); };
 
@@ -816,12 +648,17 @@ export default function MemberDashboard() {
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ color: C.goldBright }}><SunIcon s={20}/></span>
-          <span className="nav-brand-name" style={{ color: C.white, fontWeight: 700, fontSize: 14, fontFamily: display, letterSpacing: 1 }}>Macedonian Community of Brisbane</span>
+          <span className="nav-brand-name topbar-title" style={{ color: C.white, fontWeight: 700, fontSize: 14, fontFamily: display, letterSpacing: 1 }}>Macedonian Community of Brisbane</span>
           <span className="member-top-nav-subtitle" style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", marginLeft: 8, padding: "3px 10px", background: "rgba(255,255,255,0.08)", fontWeight: 600, fontFamily: body }}>
             Member Portal
           </span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <button onClick={() => setLang("en")} style={{ background: "none", border: "none", borderRadius: 0, cursor: "pointer", fontFamily: body, fontSize: 12, fontWeight: lang === "en" ? 700 : 500, color: lang === "en" ? C.goldBright : "rgba(255,255,255,0.4)", padding: "4px 8px" }}>EN</button>
+            <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 11, userSelect: "none" }}>·</span>
+            <button onClick={() => setLang("mk")} style={{ background: "none", border: "none", borderRadius: 0, cursor: "pointer", fontFamily: body, fontSize: 12, fontWeight: lang === "mk" ? 700 : 500, color: lang === "mk" ? C.goldBright : "rgba(255,255,255,0.4)", padding: "4px 8px" }}>MK</button>
+          </div>
           <button onClick={() => navigate("/")} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.55)", fontSize: 12, fontFamily: body, fontWeight: 500 }}>Home</button>
           <div style={{ width: 30, height: 30, borderRadius: "50%", background: C.goldBright, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: C.maroonDeep, fontFamily: body }}>
             {initials}
@@ -853,13 +690,12 @@ export default function MemberDashboard() {
 
         {/* Content */}
         <div className="member-dashboard-content" style={{ flex: 1, padding: 28, maxWidth: 900 }}>
-          {section === "overview" && <OverviewSection member={member} events={events} rsvps={rsvps} setSection={setSection}/>}
+          {section === "overview" && <OverviewSection member={member} events={visibleEvents} rsvps={rsvps} setSection={setSection}/>}
           {section === "profile" && <ProfileSection member={member} updateMember={updateMember}/>}
           {section === "membership" && <MembershipSection member={member} updateMember={updateMember}/>}
-          {section === "calendar" && <CalendarSection events={events} rsvps={rsvps} toggleRsvp={toggleRsvp}/>}
+          {section === "calendar" && <CalendarSection events={visibleEvents} rsvps={rsvps} toggleRsvp={toggleRsvp}/>}
           {section === "notices" && <NoticeBoardSection notices={notices}/>}
-          {section === "hallhire" && <HallHireSection blockedDates={blockedDates} blockedSlots={blockedSlots} addHallHireBooking={addHallHireBooking} member={member} hallHireBookings={hallHireBookings}/>}
-          {section === "bookings" && <MyBookingsSection hallHireBookings={hallHireBookings} member={member}/>}
+          {section === "hallhire" && <HallHireSection/>}
         </div>
       </div>
     </div>

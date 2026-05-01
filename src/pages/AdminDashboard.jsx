@@ -1,10 +1,17 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { C, body, display } from "../theme";
-import { SunIcon, PlusIcon, EditIcon, TrashIcon, LogOutIcon } from "../components/ui/Icons";
+import { SunIcon, PlusIcon, EditIcon, TrashIcon, LogOutIcon, BellIcon } from "../components/ui/Icons";
+import { TIERS, TIER_KEYS } from "../lib/tiers";
+import { POSITIONS } from "../lib/positions";
 import Badge from "../components/ui/Badge";
+import Toast from "../components/ui/Toast";
 import { useDemo } from "../context/DemoContext";
-import { ANALYTICS, getPricing } from "../data/mockData";
+import { ANALYTICS, getPricing, HALL_SLOTS } from "../data/mockData";
+import { format } from "date-fns";
+import { enUS as enUSLocale, mk as mkLocale } from "date-fns/locale";
+import { useLang } from "../context/LangContext";
+import MacoCalendar from "../components/ui/MacoCalendar";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -31,6 +38,20 @@ function dateDisplay(iso) {
   return `${MONTHS[parseInt(m) - 1].slice(0, 3)} ${parseInt(d)}, ${y}`;
 }
 
+function parseEventDate(dateStr, timeStr) {
+  if (!dateStr) return new Date();
+  const [yr, mo, dy] = dateStr.split("-").map(Number);
+  if (!timeStr) return new Date(yr, mo - 1, dy, 0, 0);
+  const m = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+  if (!m) return new Date(yr, mo - 1, dy, 0, 0);
+  let h = parseInt(m[1]);
+  const min = parseInt(m[2]);
+  const ampm = m[3].toUpperCase();
+  if (ampm === "PM" && h !== 12) h += 12;
+  if (ampm === "AM" && h === 12) h = 0;
+  return new Date(yr, mo - 1, dy, h, min);
+}
+
 const inputStyle = { width: "100%", padding: "9px 12px", border: `1px solid ${C.border}`, borderRadius: 0, fontSize: 13, fontFamily: body, color: C.textDark, background: C.white, boxSizing: "border-box" };
 const labelStyle = { display: "block", fontSize: 11, fontWeight: 600, color: C.textLight, fontFamily: body, marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.5 };
 
@@ -48,9 +69,215 @@ function Modal({ title, onClose, children }) {
   );
 }
 
+// ─── Event Popover ────────────────────────────────────────────────────────────
+
+const DATE_LOCALES = { en: enUSLocale, mk: mkLocale };
+
+function EventPopover({ event, position, onClose, onEdit, onDelete, onNotify, categoryColors }) {
+  const popoverRef = useRef(null);
+  const { t, lang } = useLang();
+
+  useEffect(() => {
+    function handleOutside(e) {
+      if (popoverRef.current && !popoverRef.current.contains(e.target)) {
+        onClose();
+      }
+    }
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, [onClose]);
+
+  const headerBg = categoryColors[event.category] || C.maroon;
+  const locale = DATE_LOCALES[lang] || DATE_LOCALES.en;
+  const dateStr = (event.start instanceof Date && !isNaN(event.start))
+    ? format(event.start, t("calendar.popover.dateTimeFormat"), { locale })
+    : (event.dateDisplay || event.date || "");
+  const timeRange = event.time && event.endTime
+    ? `${event.time} – ${event.endTime}`
+    : (event.time || "");
+
+  return (
+    <div
+      ref={popoverRef}
+      className="maco-cal-popover"
+      style={{
+        position: "fixed",
+        left: position.x,
+        top: position.y,
+        zIndex: 1000,
+        background: C.white,
+        border: `1px solid ${C.border}`,
+        boxShadow: "0 8px 32px rgba(0,0,0,0.18)",
+        width: 320,
+        maxWidth: "90vw",
+        borderRadius: 0,
+        fontFamily: body,
+      }}
+    >
+      <div style={{
+        background: headerBg,
+        padding: "14px 16px",
+        display: "flex",
+        alignItems: "flex-start",
+        justifyContent: "space-between",
+        gap: 8,
+      }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{
+            fontSize: 10, fontWeight: 700, fontFamily: body,
+            color: "rgba(255,255,255,0.65)", letterSpacing: 1,
+            textTransform: "uppercase", marginBottom: 4,
+          }}>
+            {event.category}
+          </div>
+          <div style={{
+            fontSize: 16, fontWeight: 700, color: "#ffffff",
+            lineHeight: 1.3, fontFamily: body, wordBreak: "break-word",
+          }}>
+            {event.title}
+          </div>
+        </div>
+        <span style={{
+          display: "inline-block",
+          padding: "3px 8px",
+          fontSize: 9,
+          fontWeight: 700,
+          letterSpacing: 0.5,
+          textTransform: "uppercase",
+          color: TIERS[event.visibility ?? "general"].color,
+          background: C.white,
+          fontFamily: body,
+          borderRadius: 0,
+          flexShrink: 0,
+          alignSelf: "flex-start",
+          marginRight: 4,
+        }}>
+          {TIERS[event.visibility ?? "general"].label}
+        </span>
+        <button
+          onClick={onClose}
+          title={t("calendar.popover.close")}
+          style={{
+            background: "none", border: "none", cursor: "pointer",
+            color: "rgba(255,255,255,0.65)", fontSize: 22, lineHeight: 1,
+            padding: 0, flexShrink: 0, fontFamily: body,
+          }}
+        >
+          ×
+        </button>
+      </div>
+
+      <div style={{ padding: "14px 16px" }}>
+        <div style={{ fontSize: 13, color: C.textMid, fontFamily: body, marginBottom: 12, fontWeight: 500 }}>
+          {dateStr}{timeRange ? ` · ${timeRange}` : ""}
+        </div>
+
+        {event.location && (
+          <div style={{ marginBottom: 10 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: C.textLight, textTransform: "uppercase", letterSpacing: 0.5, fontFamily: body, marginBottom: 3 }}>
+              {t("calendar.popover.location")}
+            </div>
+            <div style={{ fontSize: 13, color: C.textDark, fontFamily: body }}>{event.location}</div>
+          </div>
+        )}
+
+        {event.description && (
+          <div style={{ marginBottom: 10 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: C.textLight, textTransform: "uppercase", letterSpacing: 0.5, fontFamily: body, marginBottom: 3 }}>
+              {t("calendar.popover.description")}
+            </div>
+            <p style={{ fontSize: 13, color: C.textMid, lineHeight: 1.6, fontFamily: body, margin: 0 }}>
+              {event.description}
+            </p>
+          </div>
+        )}
+
+        <div style={{ display: "flex", gap: 8, marginTop: 14, paddingTop: 12, borderTop: `1px solid ${C.border}` }}>
+          <button
+            onClick={() => onEdit(event)}
+            style={{ flex: 1, padding: "8px 0", background: C.maroon, color: C.white, border: "none", borderRadius: 0, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: body, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+          >
+            <EditIcon/> {t("calendar.popover.edit")}
+          </button>
+          <button
+            onClick={() => onDelete(event)}
+            style={{ flex: 1, padding: "8px 0", background: "rgba(192,57,43,0.07)", color: C.red, border: `1px solid ${C.red}`, borderRadius: 0, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: body, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+          >
+            <TrashIcon/> {t("calendar.popover.delete")}
+          </button>
+        </div>
+        <button
+          onClick={() => {
+            if (window.confirm(t("admin.events.notifyConfirm"))) {
+              onNotify(event);
+            }
+          }}
+          style={{ width: "100%", marginTop: 8, padding: "8px 0", background: "transparent", color: C.textDark, border: `1px solid ${C.gold}`, borderRadius: 0, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: body, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+        >
+          <BellIcon/> {t("admin.events.notifyNow")}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── notifyCommunity ─────────────────────────────────────────────────────────
+
+function notifyCommunity({ type, event, addNotification, members, showToast, t, toastKey = "admin.events.notifyToast" }) {
+  const templates = {
+    event_created:   `New event added: ${event.title}`,
+    event_updated:   `Event updated: ${event.title}`,
+    event_deleted:   `Event cancelled: ${event.title}`,
+    event_reminder:  `Reminder: ${event.title}`,
+    notice_created:  `New notice posted: ${event.title}`,
+    notice_updated:  `Notice updated: ${event.title}`,
+    notice_deleted:  `Notice removed: ${event.title}`,
+    notice_reminder: `Notice: ${event.title}`,
+  };
+  addNotification({
+    type,
+    eventId: event.id,
+    eventTitle: event.title,
+    message: templates[type] ?? `Event: ${event.title}`,
+  });
+  showToast(t(toastKey).replace("{count}", members.length));
+}
+
+// ─── DeleteEventConfirm ───────────────────────────────────────────────────────
+
+function DeleteEventConfirm({ event, onCancel, onConfirm }) {
+  const [notifyOnDelete, setNotifyOnDelete] = useState(true);
+  const { t } = useLang();
+
+  return (
+    <Modal title="Delete event?" onClose={onCancel}>
+      <p style={{ fontSize: 14, color: C.textMid, fontFamily: body, marginBottom: 20 }}>
+        <strong style={{ color: C.textDark }}>{event.title}</strong> will be permanently deleted.
+      </p>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 24 }}>
+        <input
+          type="checkbox"
+          id="notify-delete-checkbox"
+          checked={notifyOnDelete}
+          onChange={e => setNotifyOnDelete(e.target.checked)}
+          style={{ width: 16, height: 16, cursor: "pointer", accentColor: C.maroon }}
+        />
+        <label htmlFor="notify-delete-checkbox" style={{ fontSize: 13, color: C.textDark, fontFamily: body, cursor: "pointer" }}>
+          {t("admin.events.notifyOnDelete")}
+        </label>
+      </div>
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
+        <button onClick={onCancel} style={{ padding: "10px 20px", border: `1px solid ${C.border}`, background: "transparent", borderRadius: 0, fontSize: 13, cursor: "pointer", fontFamily: body }}>Cancel</button>
+        <button onClick={() => onConfirm(notifyOnDelete)} style={{ padding: "10px 24px", background: C.red, color: C.white, border: "none", borderRadius: 0, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: body }}>Delete</button>
+      </div>
+    </Modal>
+  );
+}
+
 // ─── Members Tab ──────────────────────────────────────────────────────────────
 
 function MembersTab({ members, addMember, updateMember }) {
+  const { t } = useLang();
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterPlan, setFilterPlan] = useState("all");
@@ -147,7 +374,17 @@ function MembersTab({ members, addMember, updateMember }) {
           <tbody>
             {filtered.map((m, i) => (
               <tr key={m.id} onClick={() => setViewMember(m)} style={{ borderBottom: `1px solid ${C.border}`, cursor: "pointer", background: i % 2 === 0 ? C.white : C.cream }}>
-                <td style={{ padding: "11px 14px", fontWeight: 600, color: C.textDark }}>{m.fullName}</td>
+                <td style={{ padding: "11px 14px" }}>
+                  <div style={{ fontWeight: 600, color: C.textDark }}>{m.fullName}</div>
+                  <span style={{
+                    display: "inline-block", marginTop: 3, padding: "2px 8px",
+                    fontSize: 10, fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase",
+                    color: C.white, background: TIERS[m.tier ?? "general"].color,
+                    fontFamily: body, borderRadius: 0,
+                  }}>
+                    {t(`tiers.${m.tier ?? "general"}`)}
+                  </span>
+                </td>
                 <td style={{ padding: "11px 14px", color: C.textMid }}>{m.email}</td>
                 <td style={{ padding: "11px 14px" }}><Badge>{m.planType}</Badge></td>
                 <td style={{ padding: "11px 14px", color: C.textMid }}>{m.familySize}</td>
@@ -222,6 +459,14 @@ function MembersTab({ members, addMember, updateMember }) {
                     <label style={labelStyle}>Status</label>
                     <select style={inputStyle} value={editMember.status} onChange={e => setEditMember(p => ({ ...p, status: e.target.value }))}>
                       <option value="active">Active</option><option value="expired">Expired</option><option value="cancelled">Cancelled</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={labelStyle}>{t("tiers.memberTierLabel")}</label>
+                    <select style={inputStyle} value={editMember.tier ?? "general"} onChange={e => setEditMember(p => ({ ...p, tier: e.target.value }))}>
+                      {TIER_KEYS.map(k => (
+                        <option key={k} value={k}>{t(`tiers.${k}`)}</option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -406,30 +651,42 @@ function AnalyticsTab({ members }) {
 
 // ─── Events Tab ───────────────────────────────────────────────────────────────
 
-function EventsTab({ events, addEvent, updateEvent, deleteEvent }) {
-  const today = new Date();
-  const [year, setYear] = useState(today.getFullYear());
-  const [month, setMonth] = useState(today.getMonth());
+function EventsTab({ events, addEvent, updateEvent, deleteEvent, showToast }) {
+  const { addNotification, members } = useDemo();
+  const { t } = useLang();
   const [showForm, setShowForm] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
-  const [selectedEvents, setSelectedEvents] = useState([]);
-  const [form, setForm] = useState({ title: "", date: "", time: "", endTime: "", category: "Weekly Service", description: "", location: "" });
+  const [form, setForm] = useState({ title: "", date: "", time: "", endTime: "", category: "Weekly Service", description: "", location: "", notify: true, visibility: "general" });
+  const [popover, setPopover] = useState(null); // { event, x, y }
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
-  const cells = getCalendarDays(year, month);
-  const prevMonth = () => { if (month === 0) { setYear(y => y - 1); setMonth(11); } else setMonth(m => m - 1); setSelectedEvents([]); };
-  const nextMonth = () => { if (month === 11) { setYear(y => y + 1); setMonth(0); } else setMonth(m => m + 1); setSelectedEvents([]); };
+  const categoryColors = {
+    "Weekly Service": C.maroon,
+    "Holiday": "#7b5ea7",
+    "Youth Program": C.green,
+    "Social": "#1a7fbf",
+    "Cultural Event": "#c0682b",
+  };
 
-  const eventsThisMonth = {};
-  events.forEach(e => {
-    const [y, m] = e.date.split("-").map(Number);
-    if (y === year && m - 1 === month) {
-      const d = parseInt(e.date.split("-")[2]);
-      if (!eventsThisMonth[d]) eventsThisMonth[d] = [];
-      eventsThisMonth[d].push(e);
-    }
-  });
+  const rbcEvents = events.map(e => ({
+    ...e,
+    start: parseEventDate(e.date, e.time),
+    end:   parseEventDate(e.date, e.endTime || e.time),
+  }));
 
-  const categoryColors = { "Weekly Service": C.maroon, "Holiday": "#7b5ea7", "Youth Program": C.green, "Social": "#1a7fbf", "Cultural Event": "#c0682b" };
+  const handleSelectEvent = (event, nativeEvent) => {
+    const POPOVER_W = 320;
+    const POPOVER_H = 340;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    let x = (nativeEvent?.clientX ?? 200) + 12;
+    let y = (nativeEvent?.clientY ?? 200) - 10;
+    if (x + POPOVER_W > vw - 16) x = vw - POPOVER_W - 16;
+    if (x < 8) x = 8;
+    if (y + POPOVER_H > vh - 16) y = vh - POPOVER_H - 16;
+    if (y < 8) y = 8;
+    setPopover({ event, x, y });
+  };
 
   const handleSave = () => {
     const [, m, d] = form.date.split("-").map(Number);
@@ -437,92 +694,68 @@ function EventsTab({ events, addEvent, updateEvent, deleteEvent }) {
     const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
     const dateObj = new Date(form.date + "T12:00:00");
     const evt = { ...form, dateDisplay: `${months[m - 1]} ${d}`, day: days[dateObj.getDay()] };
-    if (editingEvent) { updateEvent(editingEvent.id, evt); setEditingEvent(null); }
-    else addEvent(evt);
+    if (editingEvent) {
+      updateEvent(editingEvent.id, evt);
+      if (form.notify) notifyCommunity({ type: "event_updated", event: { ...evt, id: editingEvent.id }, addNotification, members, showToast, t });
+      setEditingEvent(null);
+    } else {
+      const newEvt = addEvent(evt);
+      if (form.notify) notifyCommunity({ type: "event_created", event: newEvt, addNotification, members, showToast, t });
+    }
     setShowForm(false);
-    setForm({ title: "", date: "", time: "", endTime: "", category: "Weekly Service", description: "", location: "" });
+    setForm({ title: "", date: "", time: "", endTime: "", category: "Weekly Service", description: "", location: "", notify: true, visibility: "general" });
   };
 
-  const startEdit = (e) => { setEditingEvent(e); setForm({ title: e.title, date: e.date, time: e.time, endTime: e.endTime || "", category: e.category, description: e.description, location: e.location || "" }); setShowForm(true); };
+  const startEdit = (e) => {
+    setEditingEvent(e);
+    setForm({ title: e.title, date: e.date, time: e.time, endTime: e.endTime || "", category: e.category, description: e.description, location: e.location || "", notify: false, visibility: e.visibility ?? "general" });
+    setShowForm(true);
+  };
 
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <h2 style={{ fontFamily: display, fontSize: 20, color: C.textDark, margin: 0, letterSpacing: 0.5 }}>Events Calendar</h2>
-        <button onClick={() => { setEditingEvent(null); setForm({ title: "", date: "", time: "", endTime: "", category: "Weekly Service", description: "", location: "" }); setShowForm(true); }} style={{ padding: "9px 18px", background: C.maroon, color: C.white, border: "none", borderRadius: 0, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: body, display: "flex", alignItems: "center", gap: 6 }}>
+        <button
+          onClick={() => { setEditingEvent(null); setForm({ title: "", date: "", time: "", endTime: "", category: "Weekly Service", description: "", location: "", notify: true, visibility: "general" }); setShowForm(true); }}
+          style={{ padding: "9px 18px", background: C.maroon, color: C.white, border: "none", borderRadius: 0, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: body, display: "flex", alignItems: "center", gap: 6 }}
+        >
           <PlusIcon/> Add Event
         </button>
       </div>
 
-      <div className="events-layout" style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 20 }}>
-        <div className="admin-cal-panel" style={{ background: C.white, border: `1px solid ${C.border}`, padding: 20 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-            <button onClick={prevMonth} style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 0, padding: "6px 14px", cursor: "pointer", fontFamily: body, fontSize: 13 }}>←</button>
-            <span style={{ fontFamily: display, fontSize: 18, color: C.textDark, letterSpacing: 1 }}>{MONTHS[month]} {year}</span>
-            <button onClick={nextMonth} style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 0, padding: "6px 14px", cursor: "pointer", fontFamily: body, fontSize: 13 }}>→</button>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2 }}>
-            {DAYS.map(d => <div key={d} style={{ textAlign: "center", fontSize: 9, fontWeight: 700, color: C.textLight, fontFamily: body, padding: "5px 0" }}>{d}</div>)}
-            {cells.map((day, i) => {
-              if (!day) return <div key={i}/>;
-              const dayEvts = eventsThisMonth[day] || [];
-              return (
-                <div key={i} onClick={() => setSelectedEvents(dayEvts)} style={{
-                  aspectRatio: "1", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start",
-                  padding: "4px 2px", cursor: dayEvts.length > 0 ? "pointer" : "default",
-                  border: `1px solid ${C.border}`, background: C.white,
-                }}>
-                  <span style={{ fontSize: 12, fontFamily: body, color: C.textDark }}>{day}</span>
-                  {dayEvts.slice(0, 2).map((e, j) => (
-                    <div key={j} style={{ fontSize: 8, fontFamily: body, background: categoryColors[e.category] || C.maroon, color: C.white, padding: "1px 3px", marginTop: 1, width: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{e.title}</div>
-                  ))}
-                  {dayEvts.length > 2 && <div style={{ fontSize: 8, color: C.textLight, fontFamily: body }}>+{dayEvts.length - 2}</div>}
-                </div>
-              );
-            })}
-          </div>
-        </div>
+      <MacoCalendar
+        events={rbcEvents}
+        categoryColors={categoryColors}
+        onSelectEvent={handleSelectEvent}
+      />
 
-        <div className="admin-events-panel">
-          {selectedEvents.length === 0
-            ? (
-              <div>
-                <div style={{ padding: "20px", border: `1px solid ${C.border}`, background: C.cream, textAlign: "center", marginBottom: 16 }}>
-                  <div style={{ fontSize: 11, color: C.textLight, fontFamily: body }}>Click a date to see events</div>
-                </div>
-                <div style={{ fontFamily: display, fontSize: 14, color: C.textDark, marginBottom: 10 }}>Upcoming Events</div>
-                {events.filter(e => e.date >= today.toISOString().split("T")[0]).slice(0, 5).map(e => (
-                  <div key={e.id} style={{ border: `1px solid ${C.border}`, padding: "11px 14px", marginBottom: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: C.textDark, fontFamily: body }}>{e.title}</div>
-                      <div style={{ fontSize: 11, color: C.textLight, fontFamily: body }}>{e.dateDisplay} · {e.time}</div>
-                    </div>
-                    <div style={{ display: "flex", gap: 6 }}>
-                      <button onClick={() => startEdit(e)} style={{ background: "none", border: "none", cursor: "pointer", color: C.textLight, padding: 4 }}><EditIcon/></button>
-                      <button onClick={() => { if (window.confirm("Delete this event?")) deleteEvent(e.id); }} style={{ background: "none", border: "none", cursor: "pointer", color: C.red, padding: 4 }}><TrashIcon/></button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )
-            : selectedEvents.map(e => (
-              <div key={e.id} style={{ border: `1px solid ${C.border}`, padding: 16, marginBottom: 12, background: C.white }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                  <Badge>{e.category}</Badge>
-                  <div style={{ display: "flex", gap: 6 }}>
-                    <button onClick={() => startEdit(e)} style={{ background: "none", border: "none", cursor: "pointer", color: C.textLight, padding: 4 }}><EditIcon/></button>
-                    <button onClick={() => { if (window.confirm("Delete this event?")) { deleteEvent(e.id); setSelectedEvents(prev => prev.filter(ev => ev.id !== e.id)); } }} style={{ background: "none", border: "none", cursor: "pointer", color: C.red, padding: 4 }}><TrashIcon/></button>
-                  </div>
-                </div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: C.textDark, fontFamily: body, marginBottom: 4 }}>{e.title}</div>
-                <div style={{ fontSize: 12, color: C.textLight, fontFamily: body, marginBottom: 3 }}>🕐 {e.time} – {e.endTime}</div>
-                <div style={{ fontSize: 12, color: C.textLight, fontFamily: body, marginBottom: 8 }}>📍 {e.location}</div>
-                <p style={{ fontSize: 12, color: C.textMid, lineHeight: 1.5, fontFamily: body }}>{e.description}</p>
-              </div>
-            ))
-          }
-        </div>
-      </div>
+      {popover && (
+        <EventPopover
+          event={popover.event}
+          position={{ x: popover.x, y: popover.y }}
+          onClose={() => setPopover(null)}
+          onEdit={(e) => { startEdit(e); setPopover(null); }}
+          onDelete={(event) => { setDeleteTarget(event); setPopover(null); }}
+          onNotify={(event) => {
+            notifyCommunity({ type: "event_reminder", event, addNotification, members, showToast, t });
+            setPopover(null);
+          }}
+          categoryColors={categoryColors}
+        />
+      )}
+
+      {deleteTarget && (
+        <DeleteEventConfirm
+          event={deleteTarget}
+          onCancel={() => setDeleteTarget(null)}
+          onConfirm={(shouldNotify) => {
+            deleteEvent(deleteTarget.id);
+            if (shouldNotify) notifyCommunity({ type: "event_deleted", event: deleteTarget, addNotification, members, showToast, t });
+            setDeleteTarget(null);
+          }}
+        />
+      )}
 
       {showForm && (
         <Modal title={editingEvent ? "Edit Event" : "Add Event"} onClose={() => { setShowForm(false); setEditingEvent(null); }}>
@@ -557,12 +790,50 @@ function EventsTab({ events, addEvent, updateEvent, deleteEvent }) {
               <label style={labelStyle}>Description</label>
               <textarea style={{ ...inputStyle, minHeight: 80, resize: "vertical" }} value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))}/>
             </div>
+            <div style={{ gridColumn: "1 / -1" }}>
+              <label style={labelStyle}>{t("tiers.visibilityLabel")}</label>
+              <select
+                style={inputStyle}
+                value={form.visibility ?? "general"}
+                onChange={e => setForm(p => ({ ...p, visibility: e.target.value }))}
+              >
+                <option value="general">{t("tiers.visibilityGeneral")}</option>
+                <option value="financial">{t("tiers.visibilityFinancial")}</option>
+                <option value="foundational">{t("tiers.visibilityFoundational")}</option>
+              </select>
+            </div>
+            <div style={{ gridColumn: "1 / -1", display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
+              <input
+                type="checkbox"
+                id="notify-checkbox"
+                checked={form.notify}
+                onChange={e => setForm(p => ({ ...p, notify: e.target.checked }))}
+                style={{ width: 16, height: 16, cursor: "pointer", accentColor: C.maroon }}
+              />
+              <label htmlFor="notify-checkbox" style={{ fontSize: 13, color: C.textDark, fontFamily: body, cursor: "pointer" }}>
+                {editingEvent ? t("admin.events.notifyOnEdit") : t("admin.events.notifyOnCreate")}
+              </label>
+            </div>
           </div>
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 20 }}>
-            <button onClick={() => { setShowForm(false); setEditingEvent(null); }} style={{ padding: "10px 20px", border: `1px solid ${C.border}`, background: "transparent", borderRadius: 0, fontSize: 13, cursor: "pointer", fontFamily: body }}>Cancel</button>
-            <button onClick={handleSave} style={{ padding: "10px 24px", background: C.maroon, color: C.white, border: "none", borderRadius: 0, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: body }}>
-              {editingEvent ? "Save Changes" : "Add Event"}
-            </button>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 20 }}>
+            {editingEvent ? (
+              <button
+                onClick={() => {
+                  if (window.confirm(t("admin.events.notifyConfirm"))) {
+                    notifyCommunity({ type: "event_updated", event: editingEvent, addNotification, members, showToast, t });
+                  }
+                }}
+                style={{ padding: "10px 18px", border: `1px solid ${C.gold}`, background: "transparent", borderRadius: 0, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: body, color: C.textDark }}
+              >
+                {t("admin.events.notifyNow")}
+              </button>
+            ) : <div />}
+            <div style={{ display: "flex", gap: 10 }}>
+              <button onClick={() => { setShowForm(false); setEditingEvent(null); }} style={{ padding: "10px 20px", border: `1px solid ${C.border}`, background: "transparent", borderRadius: 0, fontSize: 13, cursor: "pointer", fontFamily: body }}>Cancel</button>
+              <button onClick={handleSave} style={{ padding: "10px 24px", background: C.maroon, color: C.white, border: "none", borderRadius: 0, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: body }}>
+                {editingEvent ? "Save Changes" : "Add Event"}
+              </button>
+            </div>
           </div>
         </Modal>
       )}
@@ -572,20 +843,22 @@ function EventsTab({ events, addEvent, updateEvent, deleteEvent }) {
 
 // ─── Notice Board Tab ─────────────────────────────────────────────────────────
 
-function NoticeBoardTab({ notices, addNotice, updateNotice, deleteNotice, togglePinNotice }) {
+function NoticeBoardTab({ notices, addNotice, updateNotice, deleteNotice, togglePinNotice, showToast }) {
+  const { addNotification, members } = useDemo();
+  const { t } = useLang();
   const [showForm, setShowForm] = useState(false);
   const [editingNotice, setEditingNotice] = useState(null); // notice being edited
-  const [form, setForm] = useState({ title: "", body: "", author: "Committee", pinned: false });
+  const [form, setForm] = useState({ title: "", body: "", author: "Committee", pinned: false, notify: true });
 
   const openNew = () => {
     setEditingNotice(null);
-    setForm({ title: "", body: "", author: "Committee", pinned: false });
+    setForm({ title: "", body: "", author: "Committee", pinned: false, notify: true });
     setShowForm(true);
   };
 
   const openEdit = (n) => {
     setEditingNotice(n);
-    setForm({ title: n.title, body: n.body, author: n.author, pinned: n.pinned });
+    setForm({ title: n.title, body: n.body, author: n.author, pinned: n.pinned, notify: false });
     setShowForm(true);
   };
 
@@ -594,11 +867,12 @@ function NoticeBoardTab({ notices, addNotice, updateNotice, deleteNotice, toggle
     if (editingNotice) {
       updateNotice(editingNotice.id, form);
     } else {
-      addNotice(form);
+      const newNotice = addNotice(form);
+      if (form.notify) notifyCommunity({ type: "notice_created", event: newNotice, addNotification, members, showToast, t, toastKey: "admin.notices.notifyToast" });
     }
     setShowForm(false);
     setEditingNotice(null);
-    setForm({ title: "", body: "", author: "Committee", pinned: false });
+    setForm({ title: "", body: "", author: "Committee", pinned: false, notify: true });
   };
 
   const sorted = [...notices].sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || b.postedAt?.localeCompare(a.postedAt || ""));
@@ -628,6 +902,13 @@ function NoticeBoardTab({ notices, addNotice, updateNotice, deleteNotice, toggle
               <button onClick={() => openEdit(n)} title="Edit notice" style={{ background: C.cream, border: `1px solid ${C.border}`, borderRadius: 0, padding: "6px 10px", cursor: "pointer", color: C.textMid }}>
                 <EditIcon/>
               </button>
+              <button
+                onClick={() => { if (window.confirm(t("admin.notices.notifyConfirm"))) notifyCommunity({ type: "notice_reminder", event: n, addNotification, members, showToast, t, toastKey: "admin.notices.notifyToast" }); }}
+                title={t("admin.notices.notifyNow")}
+                style={{ background: "transparent", border: `1px solid ${C.gold}`, borderRadius: 0, padding: "6px 10px", cursor: "pointer", color: C.textDark }}
+              >
+                <BellIcon/>
+              </button>
               <button onClick={() => { if (window.confirm("Delete this notice?")) deleteNotice(n.id); }} title="Delete notice" style={{ background: "rgba(192,57,43,0.06)", border: "none", borderRadius: 0, padding: "6px 10px", cursor: "pointer", color: C.red }}>
                 <TrashIcon/>
               </button>
@@ -655,6 +936,20 @@ function NoticeBoardTab({ notices, addNotice, updateNotice, deleteNotice, toggle
               <input type="checkbox" checked={form.pinned} onChange={e => setForm(p => ({ ...p, pinned: e.target.checked }))}/>
               Pin this notice to the top
             </label>
+            {!editingNotice && (
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <input
+                  type="checkbox"
+                  id="notice-notify-checkbox"
+                  checked={form.notify}
+                  onChange={e => setForm(p => ({ ...p, notify: e.target.checked }))}
+                  style={{ width: 16, height: 16, cursor: "pointer", accentColor: C.maroon }}
+                />
+                <label htmlFor="notice-notify-checkbox" style={{ fontSize: 13, color: C.textDark, fontFamily: body, cursor: "pointer" }}>
+                  {t("admin.notices.notifyOnCreate")}
+                </label>
+              </div>
+            )}
           </div>
           <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 20 }}>
             <button onClick={() => { setShowForm(false); setEditingNotice(null); }} style={{ padding: "10px 20px", border: `1px solid ${C.border}`, background: "transparent", borderRadius: 0, fontSize: 13, cursor: "pointer", fontFamily: body }}>Cancel</button>
@@ -861,6 +1156,21 @@ function HallHireTab({ hallHireBookings, updateBookingStatus, blockedDates, bloc
                     <span style={{ color: C.textDark, fontWeight: 600 }}>{v}</span>
                   </div>
                 ))}
+                {b.slot && HALL_SLOTS[b.slot] && (
+                  <div style={{ fontSize: 12, fontFamily: body }}>
+                    <span style={{ color: C.textLight }}>⏰ Time: </span>
+                    <span style={{ color: C.textDark, fontWeight: 600 }}>{HALL_SLOTS[b.slot].label}</span>
+                  </div>
+                )}
+                {b.appliedPrice != null && (
+                  <div style={{ fontSize: 12, fontFamily: body }}>
+                    <span style={{ color: C.textLight }}>💰 Price: </span>
+                    <span style={{ color: C.textDark, fontWeight: 600 }}>${b.appliedPrice}</span>
+                    {b.isMember && b.fullPrice !== b.appliedPrice && (
+                      <span style={{ fontSize: 11, color: C.green, marginLeft: 6 }}>(member rate)</span>
+                    )}
+                  </div>
+                )}
               </div>
               {[["✉️", b.email], ["📞", b.phone]].map(([icon, val]) => (
                 <div key={val} style={{ fontSize: 12, color: C.textMid, fontFamily: body, marginBottom: 2 }}>{icon} {val}</div>
@@ -892,14 +1202,139 @@ function HallHireTab({ hallHireBookings, updateBookingStatus, blockedDates, bloc
   );
 }
 
-// ─── Main Admin Dashboard ─────────────────────────────────────────────────────
+// ─── Super Admin Tab ──────────────────────────────────────────────────────────
 
-const TABS = ["Analytics", "Members", "Events", "Notice Board", "Hall Hire"];
+function SuperAdminTab({ members, updateMemberPosition }) {
+  const { t } = useLang();
+  const [selectedMemberId, setSelectedMemberId] = useState("");
+  const [selectedPosition, setSelectedPosition] = useState("");
+
+  const currentAdmins = members.filter(m => !!m.adminPosition);
+  const eligibleMembers = members.filter(m => !m.adminPosition);
+
+  const handleAdd = () => {
+    if (!selectedMemberId || !selectedPosition) return;
+    updateMemberPosition(selectedMemberId, { adminPosition: selectedPosition, isSuperAdmin: false });
+    setSelectedMemberId("");
+    setSelectedPosition("");
+  };
+
+  const handleDemote = (member) => {
+    const msg = t("superAdmin.demoteConfirm")
+      .replace("{name}", member.fullName)
+      .replace("{position}", member.adminPosition);
+    if (window.confirm(msg)) {
+      updateMemberPosition(member.id, { adminPosition: null, isSuperAdmin: false });
+    }
+  };
+
+  return (
+    <div>
+      <div style={{ marginBottom: 20 }}>
+        <h2 style={{ fontFamily: display, fontSize: 20, color: C.textDark, margin: "0 0 4px", letterSpacing: 0.5 }}>{t("superAdmin.pageTitle")}</h2>
+        <p style={{ fontSize: 13, color: C.textMid, fontFamily: body, margin: 0 }}>{t("superAdmin.pageDescription")}</p>
+      </div>
+
+      <div style={{ fontFamily: display, fontSize: 15, color: C.textDark, marginBottom: 12, letterSpacing: 0.5 }}>{t("superAdmin.currentAdminsHeading")}</div>
+      <div style={{ background: C.white, border: `1px solid ${C.border}`, marginBottom: 28, overflow: "auto" }}>
+        {currentAdmins.length === 0 ? (
+          <div style={{ padding: 24, textAlign: "center", fontSize: 13, color: C.textLight, fontFamily: body }}>{t("superAdmin.noAdmins")}</div>
+        ) : (
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, fontFamily: body }}>
+            <thead>
+              <tr style={{ background: C.cream, borderBottom: `1px solid ${C.border}` }}>
+                {["Name", t("superAdmin.positionLabel"), ""].map((h, i) => (
+                  <th key={i} style={{ padding: "10px 14px", textAlign: "left", fontWeight: 700, color: C.textMid, fontSize: 11, letterSpacing: 0.5, textTransform: "uppercase" }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {currentAdmins.map((m, i) => (
+                <tr key={m.id} style={{ borderBottom: `1px solid ${C.border}`, background: i % 2 === 0 ? C.white : C.cream }}>
+                  <td style={{ padding: "12px 14px" }}>
+                    <div style={{ fontWeight: 600, color: C.textDark }}>{m.fullName}</div>
+                    {m.isSuperAdmin && (
+                      <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase", color: C.maroon, fontFamily: body }}>
+                        {t("superAdmin.superAdminBadge")}
+                      </span>
+                    )}
+                  </td>
+                  <td style={{ padding: "12px 14px" }}>
+                    <select
+                      style={{ ...inputStyle, width: "auto" }}
+                      value={m.adminPosition}
+                      onChange={e => updateMemberPosition(m.id, { adminPosition: e.target.value, isSuperAdmin: m.isSuperAdmin })}
+                    >
+                      {POSITIONS.map(p => <option key={p} value={p}>{p}</option>)}
+                    </select>
+                  </td>
+                  <td style={{ padding: "12px 14px", textAlign: "right" }}>
+                    {!m.isSuperAdmin && (
+                      <button
+                        onClick={() => handleDemote(m)}
+                        style={{ padding: "7px 14px", background: "rgba(192,57,43,0.06)", border: `1px solid ${C.red}`, borderRadius: 0, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: body, color: C.red }}
+                      >
+                        {t("superAdmin.demote")}
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      <div style={{ fontFamily: display, fontSize: 15, color: C.textDark, marginBottom: 12, letterSpacing: 0.5 }}>{t("superAdmin.addAdminHeading")}</div>
+      {eligibleMembers.length === 0 ? (
+        <div style={{ fontSize: 13, color: C.textLight, fontFamily: body }}>{t("superAdmin.noEligibleMembers")}</div>
+      ) : (
+        <div style={{ background: C.white, border: `1px solid ${C.border}`, padding: "20px 24px", display: "flex", gap: 12, alignItems: "flex-end", flexWrap: "wrap" }}>
+          <div style={{ flex: 2, minWidth: 200 }}>
+            <label style={labelStyle}>{t("superAdmin.selectMember")}</label>
+            <select style={inputStyle} value={selectedMemberId} onChange={e => setSelectedMemberId(e.target.value)}>
+              <option value="">{t("superAdmin.selectMember")}</option>
+              {eligibleMembers.map(m => <option key={m.id} value={m.id}>{m.fullName}</option>)}
+            </select>
+          </div>
+          <div style={{ flex: 2, minWidth: 180 }}>
+            <label style={labelStyle}>{t("superAdmin.positionLabel")}</label>
+            <select style={inputStyle} value={selectedPosition} onChange={e => setSelectedPosition(e.target.value)}>
+              <option value="">{t("superAdmin.selectPosition")}</option>
+              {POSITIONS.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+          </div>
+          <button
+            onClick={handleAdd}
+            disabled={!selectedMemberId || !selectedPosition}
+            style={{ padding: "10px 24px", background: C.maroon, color: C.white, border: "none", borderRadius: 0, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: body, opacity: (!selectedMemberId || !selectedPosition) ? 0.5 : 1, flexShrink: 0 }}
+          >
+            {t("superAdmin.add")}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Main Admin Dashboard ─────────────────────────────────────────────────────
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  const { members, addMember, updateMember, events, addEvent, updateEvent, deleteEvent, notices, addNotice, updateNotice, deleteNotice, togglePinNotice, hallHireBookings, addHallHireBooking, updateBookingStatus, blockedDates, blockedSlots, setRole } = useDemo();
+  const { members, addMember, updateMember, events, addEvent, updateEvent, deleteEvent, notices, addNotice, updateNotice, deleteNotice, togglePinNotice, hallHireBookings, addHallHireBooking, updateBookingStatus, blockedDates, blockedSlots, setRole, addNotification, currentAdmin, updateMemberPosition } = useDemo();
   const [tab, setTab] = useState("Analytics");
+  const { lang, setLang, t } = useLang();
+  const [toast, setToast] = useState(null);
+  const showToast = (message) => setToast({ message });
+
+  const tabs = ["Analytics", "Members", "Events", "Notice Board", "Hall Hire"];
+  if (currentAdmin?.isSuperAdmin) tabs.push("Super Admin");
+
+  useEffect(() => {
+    if (tab === "Super Admin" && !currentAdmin?.isSuperAdmin) {
+      setTab("Analytics");
+    }
+  }, [currentAdmin?.isSuperAdmin, tab]);
 
   const handleSignOut = () => { setRole("public"); navigate("/"); };
 
@@ -909,10 +1344,15 @@ export default function AdminDashboard() {
       <div style={{ background: C.maroon, padding: "0 24px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 52, borderBottom: `2px solid ${C.goldBright}`, position: "sticky", top: 36, zIndex: 100 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ color: C.goldBright }}><SunIcon s={20}/></span>
-          <span className="nav-brand-name" style={{ color: C.white, fontWeight: 700, fontSize: 14, fontFamily: display, letterSpacing: 1 }}>Macedonian Community of Brisbane</span>
+          <span className="nav-brand-name topbar-title" style={{ color: C.white, fontWeight: 700, fontSize: 14, fontFamily: display, letterSpacing: 1 }}>Macedonian Community of Brisbane</span>
           <span className="admin-top-nav-title" style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", marginLeft: 8, padding: "3px 10px", background: "rgba(255,255,255,0.08)", fontWeight: 600, fontFamily: body }}>Committee Admin</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <button onClick={() => setLang("en")} style={{ background: "none", border: "none", borderRadius: 0, cursor: "pointer", fontFamily: body, fontSize: 12, fontWeight: lang === "en" ? 700 : 500, color: lang === "en" ? C.goldBright : "rgba(255,255,255,0.4)", padding: "4px 8px" }}>EN</button>
+            <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 11, userSelect: "none" }}>·</span>
+            <button onClick={() => setLang("mk")} style={{ background: "none", border: "none", borderRadius: 0, cursor: "pointer", fontFamily: body, fontSize: 12, fontWeight: lang === "mk" ? 700 : 500, color: lang === "mk" ? C.goldBright : "rgba(255,255,255,0.4)", padding: "4px 8px" }}>MK</button>
+          </div>
           <button onClick={() => navigate("/")} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.55)", fontSize: 12, fontFamily: body, fontWeight: 500 }}>Home</button>
           <button onClick={handleSignOut} title="Sign out" style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", padding: 4 }}>
             <LogOutIcon/>
@@ -922,14 +1362,14 @@ export default function AdminDashboard() {
 
       {/* Tab bar */}
       <div className="admin-tab-bar" style={{ background: C.white, borderBottom: `1px solid ${C.border}`, padding: "0 24px", display: "flex", gap: 0, position: "sticky", top: 88, zIndex: 90 }}>
-        {TABS.map(t => (
-          <button key={t} onClick={() => setTab(t)} style={{
+        {tabs.map(tabKey => (
+          <button key={tabKey} onClick={() => setTab(tabKey)} style={{
             padding: "14px 20px", border: "none", background: "none", cursor: "pointer", fontFamily: body,
-            fontSize: 13, fontWeight: tab === t ? 700 : 500, color: tab === t ? C.maroon : C.textMid,
-            borderBottom: tab === t ? `2px solid ${C.maroon}` : "2px solid transparent",
+            fontSize: 13, fontWeight: tab === tabKey ? 700 : 500, color: tab === tabKey ? C.maroon : C.textMid,
+            borderBottom: tab === tabKey ? `2px solid ${C.maroon}` : "2px solid transparent",
             marginBottom: -1,
           }}>
-            {t}
+            {tabKey === "Super Admin" ? t("superAdmin.tabLabel") : tabKey}
           </button>
         ))}
       </div>
@@ -937,10 +1377,13 @@ export default function AdminDashboard() {
       <div className="admin-content" style={{ maxWidth: 1200, margin: "0 auto", padding: 28 }}>
         {tab === "Analytics" && <AnalyticsTab members={members}/>}
         {tab === "Members" && <MembersTab members={members} addMember={addMember} updateMember={updateMember}/>}
-        {tab === "Events" && <EventsTab events={events} addEvent={addEvent} updateEvent={updateEvent} deleteEvent={deleteEvent}/>}
-        {tab === "Notice Board" && <NoticeBoardTab notices={notices} addNotice={addNotice} updateNotice={updateNotice} deleteNotice={deleteNotice} togglePinNotice={togglePinNotice}/>}
+        {tab === "Events" && <EventsTab events={events} addEvent={addEvent} updateEvent={updateEvent} deleteEvent={deleteEvent} showToast={showToast}/>}
+        {tab === "Notice Board" && <NoticeBoardTab notices={notices} addNotice={addNotice} updateNotice={updateNotice} deleteNotice={deleteNotice} togglePinNotice={togglePinNotice} showToast={showToast}/>}
         {tab === "Hall Hire" && <HallHireTab hallHireBookings={hallHireBookings} updateBookingStatus={updateBookingStatus} blockedDates={blockedDates} blockedSlots={blockedSlots} addHallHireBooking={addHallHireBooking}/>}
+        {tab === "Super Admin" && <SuperAdminTab members={members} updateMemberPosition={updateMemberPosition}/>}
       </div>
+
+      <Toast message={toast?.message} visible={!!toast} onDismiss={() => setToast(null)}/>
     </div>
   );
 }

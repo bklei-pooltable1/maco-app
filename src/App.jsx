@@ -19,6 +19,7 @@ import SignUp from "./pages/SignUp";
 import MemberDashboard from "./pages/MemberDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import PublicCalendar from "./pages/PublicCalendar";
+import HallHire from "./pages/HallHire";
 
 // Layout
 import AppNav from "./components/layout/AppNav";
@@ -70,6 +71,7 @@ function AppRoutes() {
       <Route path="/" element={<Home/>}/>
       <Route path="/signup" element={<SignUp/>}/>
       <Route path="/calendar" element={<PublicCalendar/>}/>
+      <Route path="/hall-hire" element={<HallHire/>}/>
       <Route path="/member-dashboard" element={<MemberDashboard/>}/>
       <Route path="/admin-dashboard" element={<AdminDashboard/>}/>
 

@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { SunIcon } from "../components/ui/Icons";
 import Badge from "../components/ui/Badge";
 import { C, body, display } from "../theme";
 import { useDemo } from "../context/DemoContext";
 import { useLang } from "../context/LangContext";
+import { canSee } from "../lib/tiers";
 import PublicNav from "../components/layout/PublicNav";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -36,136 +37,12 @@ const categoryColors = {
   "Cultural Event": "#c0682b",
 };
 
-const inputStyle = {
-  width: "100%", padding: "10px 12px", border: `1px solid ${C.border}`,
-  borderRadius: 0, fontSize: 13, fontFamily: body, color: C.textDark,
-  background: C.white, outline: "none", boxSizing: "border-box",
-};
-
-const labelStyle = {
-  display: "block", fontSize: 11, fontWeight: 600, color: C.textMid,
-  marginBottom: 5, fontFamily: body, textTransform: "uppercase", letterSpacing: 0.5,
-};
-
-// ─── Hall Hire Enquiry Form ───────────────────────────────────────────────────
-
-function HallHireForm({ onSubmit }) {
-  const [form, setForm] = useState({
-    name: "", email: "", phone: "", date: "",
-    slot: "fullday", eventType: "", guests: "", notes: "",
-  });
-  const [submitted, setSubmitted] = useState(false);
-  const [errors, setErrors] = useState({});
-
-  const validate = () => {
-    const e = {};
-    if (!form.name.trim()) e.name = "Required";
-    if (!form.email.trim()) e.email = "Required";
-    if (!form.date) e.date = "Required";
-    if (!form.eventType.trim()) e.eventType = "Required";
-    if (!form.guests) e.guests = "Required";
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!validate()) return;
-    onSubmit(form);
-    setSubmitted(true);
-  };
-
-  if (submitted) {
-    return (
-      <div style={{ textAlign: "center", padding: "32px 0" }}>
-        <div style={{ fontSize: 40, marginBottom: 12 }}>✓</div>
-        <h3 style={{ fontFamily: display, fontSize: 20, color: C.green, marginBottom: 10 }}>Enquiry Submitted!</h3>
-        <p style={{ fontSize: 14, color: C.textMid, fontFamily: body, lineHeight: 1.7 }}>
-          Thank you for your hall hire enquiry. The committee will be in touch shortly to confirm your booking.
-        </p>
-        <button onClick={() => setSubmitted(false)} style={{ marginTop: 20, padding: "10px 24px", background: "transparent", border: `1px solid ${C.border}`, borderRadius: 0, fontSize: 13, cursor: "pointer", fontFamily: body, color: C.textMid }}>
-          Submit Another
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <div className="hire-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
-        <div>
-          <label style={labelStyle}>Your Name *</label>
-          <input style={{ ...inputStyle, borderColor: errors.name ? C.red : C.border }} value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="Full name"/>
-          {errors.name && <span style={{ fontSize: 11, color: C.red, fontFamily: body }}>{errors.name}</span>}
-        </div>
-        <div>
-          <label style={labelStyle}>Email *</label>
-          <input type="email" style={{ ...inputStyle, borderColor: errors.email ? C.red : C.border }} value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} placeholder="your@email.com"/>
-          {errors.email && <span style={{ fontSize: 11, color: C.red, fontFamily: body }}>{errors.email}</span>}
-        </div>
-        <div>
-          <label style={labelStyle}>Phone</label>
-          <input style={inputStyle} value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} placeholder="0412 345 678"/>
-        </div>
-        <div>
-          <label style={labelStyle}>Preferred Date *</label>
-          <input type="date" style={{ ...inputStyle, borderColor: errors.date ? C.red : C.border }} value={form.date} min={new Date().toISOString().split("T")[0]} onChange={e => setForm(p => ({ ...p, date: e.target.value }))}/>
-          {errors.date && <span style={{ fontSize: 11, color: C.red, fontFamily: body }}>{errors.date}</span>}
-        </div>
-      </div>
-
-      <div style={{ marginBottom: 14 }}>
-        <label style={labelStyle}>Booking Type *</label>
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          {[
-            { value: "morning",   label: "Morning Slot (9am – 1pm)" },
-            { value: "afternoon", label: "Afternoon Slot (1pm – 5pm)" },
-            { value: "fullday",   label: "Full Day (9am – 5pm)" },
-          ].map(opt => (
-            <label key={opt.value} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, fontFamily: body, color: C.textDark, padding: "9px 14px", border: `1px solid ${form.slot === opt.value ? C.maroon : C.border}`, background: form.slot === opt.value ? "rgba(140,26,17,0.06)" : C.white }}>
-              <input type="radio" name="slot" value={opt.value} checked={form.slot === opt.value} onChange={() => setForm(p => ({ ...p, slot: opt.value }))} style={{ accentColor: C.maroon }}/>
-              {opt.label}
-            </label>
-          ))}
-        </div>
-      </div>
-
-      <div className="hire-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
-        <div>
-          <label style={labelStyle}>Occasion / Event Type *</label>
-          <input style={{ ...inputStyle, borderColor: errors.eventType ? C.red : C.border }} value={form.eventType} onChange={e => setForm(p => ({ ...p, eventType: e.target.value }))} placeholder="e.g. Birthday, Wedding, Meeting"/>
-          {errors.eventType && <span style={{ fontSize: 11, color: C.red, fontFamily: body }}>{errors.eventType}</span>}
-        </div>
-        <div>
-          <label style={labelStyle}>Expected Guests *</label>
-          <input type="number" min={1} max={150} style={{ ...inputStyle, borderColor: errors.guests ? C.red : C.border }} value={form.guests} onChange={e => setForm(p => ({ ...p, guests: e.target.value }))} placeholder="How many guests?"/>
-          {errors.guests && <span style={{ fontSize: 11, color: C.red, fontFamily: body }}>{errors.guests}</span>}
-        </div>
-      </div>
-      <div style={{ marginBottom: 20 }}>
-        <label style={labelStyle}>Additional Notes</label>
-        <textarea style={{ ...inputStyle, minHeight: 70, resize: "vertical" }} value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} placeholder="Any special requirements, layout preferences, equipment needs…"/>
-      </div>
-
-      <div style={{ background: C.goldMuted, border: `1px solid ${C.goldLight}`, padding: "10px 14px", marginBottom: 16, fontSize: 12, fontFamily: body, color: C.textMid }}>
-        💡 Hall capacity: up to 150 guests. Members receive a <strong>20% discount</strong>. Bookings are subject to committee approval.
-      </div>
-
-      <button type="submit" className="cal-hire-submit" style={{ padding: "13px 32px", background: C.maroon, color: C.white, border: "none", borderRadius: 0, fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: body }}>
-        Submit Hall Hire Enquiry
-      </button>
-      <div style={{ marginTop: 12, fontSize: 12, color: C.textLight, fontFamily: body }}>
-        To become a member and receive a discount, <Link to="/signup" style={{ color: C.maroon, textDecoration: "underline" }}>join here</Link>.
-      </div>
-    </form>
-  );
-}
-
 // ─── Public Calendar ──────────────────────────────────────────────────────────
 
 export default function PublicCalendar() {
-  const { events, hallHireBookings, blockedSlots, addHallHireBooking } = useDemo();
+  const { events } = useDemo();
   const { t, lang, cyrillicDisplay } = useLang();
+  const publicEvents = events.filter(e => canSee("general", e.visibility ?? "general"));
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
@@ -177,7 +54,7 @@ export default function PublicCalendar() {
 
   // Events indexed by day for this month
   const eventsThisMonth = {};
-  events.forEach(e => {
+  publicEvents.forEach(e => {
     const [y, m, d] = e.date.split("-").map(Number);
     if (y === year && m - 1 === month) {
       if (!eventsThisMonth[d]) eventsThisMonth[d] = [];
@@ -197,20 +74,6 @@ export default function PublicCalendar() {
   };
 
   const dayEvents = selectedDay ? (eventsThisMonth[selectedDay] || []) : [];
-
-  const handleHireSubmit = (form) => {
-    addHallHireBooking({
-      name: form.name,
-      email: form.email,
-      phone: form.phone,
-      date: form.date,
-      dateDisplay: form.date,
-      slot: form.slot,
-      eventType: form.eventType,
-      expectedGuests: parseInt(form.guests),
-      notes: form.notes,
-    });
-  };
 
   return (
     <div style={{ fontFamily: body, background: C.cream, minHeight: "100vh" }}>
@@ -263,9 +126,6 @@ export default function PublicCalendar() {
                 const hasEvents = dayEvts.length > 0;
                 const isToday = year === today.getFullYear() && month === today.getMonth() && day === today.getDate();
                 const isSelected = day === selectedDay;
-                const slots = blockedSlots[iso] || [];
-                const hasHireMorning = slots.includes("morning");
-                const hasHireAfternoon = slots.includes("afternoon");
 
                 return (
                   <div
@@ -285,14 +145,7 @@ export default function PublicCalendar() {
                       overflow: "hidden",
                     }}
                   >
-                    {/* Half-day hire indicators */}
-                    {(hasHireMorning || hasHireAfternoon) && (
-                      <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", pointerEvents: "none" }}>
-                        <div style={{ flex: 1, background: hasHireMorning ? "rgba(192,57,43,0.12)" : "transparent" }}/>
-                        <div style={{ flex: 1, background: hasHireAfternoon ? "rgba(192,57,43,0.12)" : "transparent" }}/>
-                      </div>
-                    )}
-                    <span style={{ fontSize: 12, fontFamily: body, fontWeight: isToday ? 700 : 400, color: isSelected ? C.white : isToday ? C.maroon : C.textDark, position: "relative", zIndex: 1, marginTop: 2 }}>
+                    <span style={{ fontSize: 12, fontFamily: body, fontWeight: isToday ? 700 : 400, color: isSelected ? C.white : isToday ? C.maroon : C.textDark, marginTop: 2 }}>
                       {day}
                     </span>
                     {/* Event dots */}
@@ -316,10 +169,6 @@ export default function PublicCalendar() {
                   <span style={{ fontSize: 10, color: C.textLight, fontFamily: body }}>{cat}</span>
                 </div>
               ))}
-              <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                <div style={{ width: 16, height: 8, background: "rgba(192,57,43,0.12)", border: `1px solid ${C.border}` }}/>
-                <span style={{ fontSize: 10, color: C.textLight, fontFamily: body }}>Hall booked (AM/PM)</span>
-              </div>
             </div>
           </div>
 
@@ -390,20 +239,6 @@ export default function PublicCalendar() {
           </div>
         </div>
 
-        {/* Hall Hire Section */}
-        <div id="book-hall" style={{ background: C.white, border: `1px solid ${C.border}`, overflow: "hidden" }}>
-          <div className="cal-hire-header" style={{ background: C.maroon, padding: "24px 32px" }}>
-            <h2 style={{ fontFamily: headingFont, fontSize: 26, color: C.white, letterSpacing: 1, margin: "0 0 6px" }}>
-              {t("calendar.bookHall")}
-            </h2>
-            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", fontFamily: body, margin: 0 }}>
-              {t("calendar.bookHallSub")}
-            </p>
-          </div>
-          <div className="cal-hire-body" style={{ padding: "28px 32px" }}>
-            <HallHireForm onSubmit={handleHireSubmit}/>
-          </div>
-        </div>
       </div>
     </div>
   );

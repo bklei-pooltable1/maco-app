@@ -229,6 +229,9 @@ html, body {
   .admin-top-nav-title {
     display: none !important;
   }
+  .topbar-title {
+    display: none !important;
+  }
   .table-scroll-container {
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch !important;
@@ -341,7 +344,43 @@ html, body {
     text-align: center !important;
   }
 
+  /* ─── MacoCalendar ─────────────────────────────────────────────────────── */
+  .maco-cal-wrapper {
+    height: 480px !important;
+  }
+  .maco-cal-wrapper .rbc-toolbar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+  .maco-cal-wrapper .rbc-toolbar-label {
+    text-align: center !important;
+    order: -1 !important;
+  }
+  .maco-cal-wrapper .rbc-btn-group {
+    justify-content: center !important;
+  }
+  .maco-cal-wrapper .rbc-month-row {
+    min-height: 60px !important;
+  }
+  /* Popover becomes a centred modal overlay on mobile */
+  .maco-cal-popover {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: calc(100vw - 32px) !important;
+    max-width: 420px !important;
+    max-height: 80vh !important;
+    overflow-y: auto !important;
+  }
+
   /* ─── General ──────────────────────────────────────────────────────────── */
+  .maco-toast {
+    left: 16px !important;
+    right: 16px !important;
+    max-width: none !important;
+  }
   .tap-target {
     min-height: 44px !important;
     min-width: 44px !important;

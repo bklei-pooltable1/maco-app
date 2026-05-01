@@ -55,7 +55,7 @@ export default function PublicNav() {
             { label: t("nav.dashboard"),    onClick: () => navigate("/member-dashboard") },
             { label: t("nav.calendar"),     onClick: () => navigate("/calendar") },
             { label: t("nav.noticeBoard"),  onClick: () => navigate("/member-dashboard") },
-            { label: t("nav.hallHire"),     onClick: () => navigate("/calendar#book-hall") },
+            { label: t("nav.hallHire"),     onClick: () => navigate("/hall-hire") },
           ].map(({ label, onClick }) => (
             <span key={label} className="nav-link" onClick={onClick} style={{ color: "rgba(255,255,255,0.65)", fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: body, letterSpacing: 1.2 }}>
               {label}
@@ -106,7 +106,7 @@ export default function PublicNav() {
   const publicNavLinks = [
     { label: t("nav.events"),   id: "events" },
     { label: t("nav.notices"),  id: "notices" },
-    { label: t("nav.hallHire"), onClick: () => navigate("/calendar#book-hall") },
+    { label: t("nav.hallHire"), onClick: () => navigate("/hall-hire") },
     { label: t("nav.about"),    id: "about" },
   ];
 

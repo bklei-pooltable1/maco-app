@@ -18,6 +18,9 @@ export const getPricing = (memberCount) => {
 
 // ─── MEMBERS ────────────────────────────────────────────────────────────────
 
+// tier: "general" | "financial" | "foundational"
+// financial: m3 Stojan Dimitrov, m14 Biljana Atanasovska
+// foundational: m11 Metodija Kostadinov (earliest joiner, 2019)
 export const INITIAL_MEMBERS = [
   {
     id: "m1",
@@ -33,6 +36,8 @@ export const INITIAL_MEMBERS = [
     planType: "Family (4)", yearlyPrice: 145, monthlyPrice: 15,
     joinDate: "2024-08-12", renewalDate: "2026-08-12",
     status: "active", paymentMethod: "Stripe", billingCycle: "yearly",
+    tier: "general",
+    adminPosition: "Secretary",
   },
   {
     id: "m2",
@@ -44,6 +49,7 @@ export const INITIAL_MEMBERS = [
     planType: "Couple", yearlyPrice: 90, monthlyPrice: 9,
     joinDate: "2025-01-05", renewalDate: "2026-01-05",
     status: "active", paymentMethod: "Stripe", billingCycle: "monthly",
+    tier: "general",
   },
   {
     id: "m3",
@@ -54,6 +60,8 @@ export const INITIAL_MEMBERS = [
     planType: "Individual", yearlyPrice: 60, monthlyPrice: 6,
     joinDate: "2022-03-20", renewalDate: "2026-03-20",
     status: "active", paymentMethod: "Bank Transfer", billingCycle: "yearly",
+    tier: "financial",
+    adminPosition: "Vice President",
   },
   {
     id: "m4",
@@ -64,6 +72,8 @@ export const INITIAL_MEMBERS = [
     planType: "Individual", yearlyPrice: 60, monthlyPrice: 6,
     joinDate: "2025-06-18", renewalDate: "2026-06-18",
     status: "active", paymentMethod: "Stripe", billingCycle: "monthly",
+    tier: "general",
+    adminPosition: "Committee Member",
   },
   {
     id: "m5",
@@ -80,6 +90,7 @@ export const INITIAL_MEMBERS = [
     planType: "Family (5)", yearlyPrice: 165, monthlyPrice: 17,
     joinDate: "2023-11-30", renewalDate: "2026-11-30",
     status: "active", paymentMethod: "Cash", billingCycle: "yearly",
+    tier: "general",
   },
   {
     id: "m6",
@@ -94,6 +105,7 @@ export const INITIAL_MEMBERS = [
     planType: "Family (3)", yearlyPrice: 120, monthlyPrice: 12,
     joinDate: "2024-02-14", renewalDate: "2026-02-14",
     status: "active", paymentMethod: "Stripe", billingCycle: "yearly",
+    tier: "general",
   },
   {
     id: "m7",
@@ -104,6 +116,7 @@ export const INITIAL_MEMBERS = [
     planType: "Individual", yearlyPrice: 60, monthlyPrice: 6,
     joinDate: "2025-09-01", renewalDate: "2026-09-01",
     status: "active", paymentMethod: "Stripe", billingCycle: "monthly",
+    tier: "general",
   },
   {
     id: "m8",
@@ -115,6 +128,7 @@ export const INITIAL_MEMBERS = [
     planType: "Couple", yearlyPrice: 90, monthlyPrice: 9,
     joinDate: "2021-07-10", renewalDate: "2025-07-10",
     status: "expired", paymentMethod: "Bank Transfer", billingCycle: "yearly",
+    tier: "general",
   },
   {
     id: "m9",
@@ -130,6 +144,7 @@ export const INITIAL_MEMBERS = [
     planType: "Family (4)", yearlyPrice: 145, monthlyPrice: 15,
     joinDate: "2024-05-22", renewalDate: "2026-05-22",
     status: "active", paymentMethod: "Stripe", billingCycle: "yearly",
+    tier: "general",
   },
   {
     id: "m10",
@@ -140,6 +155,7 @@ export const INITIAL_MEMBERS = [
     planType: "Individual", yearlyPrice: 60, monthlyPrice: 6,
     joinDate: "2025-03-15", renewalDate: "2026-03-15",
     status: "active", paymentMethod: "Stripe", billingCycle: "monthly",
+    tier: "general",
   },
   {
     id: "m11",
@@ -151,6 +167,9 @@ export const INITIAL_MEMBERS = [
     planType: "Couple", yearlyPrice: 90, monthlyPrice: 9,
     joinDate: "2019-10-05", renewalDate: "2026-10-05",
     status: "active", paymentMethod: "Cash", billingCycle: "yearly",
+    tier: "foundational",
+    adminPosition: "President",
+    isSuperAdmin: true,
   },
   {
     id: "m12",
@@ -168,6 +187,7 @@ export const INITIAL_MEMBERS = [
     planType: "Family (6+)", yearlyPrice: 180, monthlyPrice: 18,
     joinDate: "2023-04-08", renewalDate: "2026-04-08",
     status: "active", paymentMethod: "Bank Transfer", billingCycle: "yearly",
+    tier: "general",
   },
   {
     id: "m13",
@@ -178,6 +198,7 @@ export const INITIAL_MEMBERS = [
     planType: "Individual", yearlyPrice: 60, monthlyPrice: 6,
     joinDate: "2025-10-20", renewalDate: "2026-10-20",
     status: "active", paymentMethod: "Stripe", billingCycle: "monthly",
+    tier: "general",
   },
   {
     id: "m14",
@@ -192,6 +213,8 @@ export const INITIAL_MEMBERS = [
     planType: "Family (3)", yearlyPrice: 120, monthlyPrice: 12,
     joinDate: "2022-12-01", renewalDate: "2026-12-01",
     status: "active", paymentMethod: "Stripe", billingCycle: "yearly",
+    tier: "financial",
+    adminPosition: "Treasurer",
   },
   {
     id: "m15",
@@ -208,10 +231,14 @@ export const INITIAL_MEMBERS = [
     planType: "Family (5)", yearlyPrice: 165, monthlyPrice: 17,
     joinDate: "2024-01-15", renewalDate: "2026-01-15",
     status: "active", paymentMethod: "Stripe", billingCycle: "yearly",
+    tier: "general",
   },
 ];
 
 // ─── EVENTS ─────────────────────────────────────────────────────────────────
+// visibility: "general" | "financial" | "foundational"
+// financial: ev4 Good Friday Service (members-only religious observance)
+// foundational: ev8 Founders' Dinner & Awards Night (renamed from Annual Cultural Night)
 
 export const INITIAL_EVENTS = [
   {
@@ -225,6 +252,7 @@ export const INITIAL_EVENTS = [
     category: "Weekly Service",
     description: "Join us for our weekly Sunday Divine Liturgy. All are welcome to attend this sacred service.",
     location: "St. Naum Ohridski Church, 52 Stevenson St, Bowen Hills",
+    visibility: "general",
   },
   {
     id: "ev2",
@@ -237,6 +265,7 @@ export const INITIAL_EVENTS = [
     category: "Holiday",
     description: "Community gathering to prepare for Easter celebrations. Help decorate, cook traditional Macedonian dishes and celebrate together.",
     location: "Macedonian Community Hall, Bowen Hills",
+    visibility: "general",
   },
   {
     id: "ev3",
@@ -249,6 +278,7 @@ export const INITIAL_EVENTS = [
     category: "Holiday",
     description: "Palm Sunday marks the beginning of Holy Week. Special service with blessing of the palms.",
     location: "St. Naum Ohridski Church, 52 Stevenson St, Bowen Hills",
+    visibility: "general",
   },
   {
     id: "ev4",
@@ -259,9 +289,10 @@ export const INITIAL_EVENTS = [
     time: "6:00 PM",
     endTime: "8:30 PM",
     category: "Holiday",
-    description: "Solemn Good Friday service commemorating the crucifixion of Christ. Evening procession to follow.",
+    description: "Solemn Good Friday service commemorating the crucifixion of Christ. Evening procession to follow. Financial members and above.",
     location: "St. Naum Ohridski Church, 52 Stevenson St, Bowen Hills",
     membersOnly: true,
+    visibility: "financial",
   },
   {
     id: "ev5",
@@ -274,6 +305,7 @@ export const INITIAL_EVENTS = [
     category: "Holiday",
     description: "Celebrate the Resurrection! Easter Liturgy followed by a community breakfast. Bring your painted eggs!",
     location: "St. Naum Ohridski Church & Community Hall, Bowen Hills",
+    visibility: "general",
   },
   {
     id: "ev6",
@@ -286,6 +318,7 @@ export const INITIAL_EVENTS = [
     category: "Youth Program",
     description: "Interactive workshop for youth (ages 10-25) exploring Macedonian language, music and traditional dance.",
     location: "Macedonian Community Hall, Bowen Hills",
+    visibility: "general",
   },
   {
     id: "ev7",
@@ -298,19 +331,21 @@ export const INITIAL_EVENTS = [
     category: "Social",
     description: "Relax and connect with the community at our monthly BBQ. Food, music and good company. All members and friends welcome.",
     location: "Minnippi Parklands, Tingalpa",
+    visibility: "general",
   },
   {
     id: "ev8",
-    title: "Annual Cultural Night (Vecher)",
+    title: "Founders' Dinner & Awards Night",
     date: "2026-05-17",
     dateDisplay: "May 17",
     day: "Sun",
     time: "7:00 PM",
     endTime: "11:00 PM",
     category: "Cultural Event",
-    description: "Our flagship cultural evening featuring traditional Macedonian music, dance performances, authentic cuisine and community awards.",
+    description: "An exclusive dinner for our foundational members featuring a formal awards ceremony, premium Macedonian cuisine, and recognition of long-standing contributors to our community.",
     location: "Macedonian Community Hall, Bowen Hills",
     membersOnly: true,
+    visibility: "foundational",
   },
 ];
 
@@ -351,6 +386,26 @@ export const HALL_SLOTS = {
   afternoon: { label: "Afternoon Slot (1pm – 5pm)", start: "13:00", end: "17:00", hours: 4 },
   fullday:   { label: "Full Day (9am – 5pm)",        start: "09:00", end: "17:00", hours: 8 },
 };
+
+export const HALL_HIRE_PRICING = {
+  morning:   { fullPrice: 200, memberPrice: 160 },
+  afternoon: { fullPrice: 200, memberPrice: 160 },
+  fullday:   { fullPrice: 350, memberPrice: 280 },
+};
+
+export const MEMBER_DISCOUNT_PERCENT = 20;
+
+export function getPriceForBooking({ slot, isMember }) {
+  const pricing = HALL_HIRE_PRICING[slot];
+  if (!pricing) return null;
+  return {
+    fullPrice:      pricing.fullPrice,
+    memberPrice:    pricing.memberPrice,
+    appliedPrice:   isMember ? pricing.memberPrice : pricing.fullPrice,
+    discountAmount: pricing.fullPrice - pricing.memberPrice,
+    isMember,
+  };
+}
 
 export const INITIAL_HALL_HIRE = [
   {
@@ -435,4 +490,7 @@ export const DEMO_MEMBER = {
   renewalDate: "2026-01-05",
   status: "active",
   billingCycle: "yearly",
+  tier: "financial",
 };
+
+export const DEMO_ADMIN = INITIAL_MEMBERS.find(m => m.id === "m11");
