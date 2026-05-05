@@ -1,30 +1,18 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useRef, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { useLang } from "../context/LangContext";
 import { C, body, display } from "../theme";
-import { SunIcon, HomeIcon, CalIcon, BellIcon, BuildingIcon, UsersIcon, LogOutIcon } from "../components/ui/Icons";
+import { SunIcon, HomeIcon, CalIcon, BellIcon, BuildingIcon, UsersIcon, LogOutIcon, HelpIcon, DocumentIcon } from "../components/ui/Icons";
 import Badge from "../components/ui/Badge";
 import { useDemo } from "../context/DemoContext";
 import { getPricing } from "../data/mockData";
 import { canSee } from "../lib/tiers";
+import { format } from "date-fns";
+import { enUS as enUSLocale, mk as mkLocale } from "date-fns/locale";
+import MacoCalendar from "../components/ui/MacoCalendar";
+import NotificationsBell from "../components/ui/NotificationsBell";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-
-const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-
-function getCalendarDays(year, month) {
-  const firstDay = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const cells = [];
-  for (let i = 0; i < firstDay; i++) cells.push(null);
-  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
-  return cells;
-}
-
-function toISO(year, month, day) {
-  return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-}
 
 const categoryColors = {
   "Weekly Service": C.maroon,
@@ -33,6 +21,22 @@ const categoryColors = {
   "Social": "#1a7fbf",
   "Cultural Event": "#c0682b",
 };
+
+const DATE_LOCALES = { en: enUSLocale, mk: mkLocale };
+
+function parseEventDate(dateStr, timeStr) {
+  if (!dateStr) return new Date();
+  const [yr, mo, dy] = dateStr.split("-").map(Number);
+  if (!timeStr) return new Date(yr, mo - 1, dy, 0, 0);
+  const m = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+  if (!m) return new Date(yr, mo - 1, dy, 0, 0);
+  let h = parseInt(m[1]);
+  const min = parseInt(m[2]);
+  const ampm = m[3].toUpperCase();
+  if (ampm === "PM" && h !== 12) h += 12;
+  if (ampm === "AM" && h === 12) h = 0;
+  return new Date(yr, mo - 1, dy, h, min);
+}
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -350,194 +354,186 @@ function AddFamilyMemberSection({ member, updateMember }) {
   );
 }
 
-// ─── Calendar helpers (iCal / Google) ────────────────────────────────────────
 
-function dateToICSFormat(dateStr, timeStr) {
-  // dateStr: "2026-04-06", timeStr: "9:00 AM" → "20260406T090000"
-  const [y, m, d] = dateStr.split("-");
-  if (!timeStr) return `${y}${m}${d}T000000`;
-  const [time, meridiem] = timeStr.split(" ");
-  let [hours, minutes] = time.split(":").map(Number);
-  if (meridiem === "PM" && hours !== 12) hours += 12;
-  if (meridiem === "AM" && hours === 12) hours = 0;
-  return `${y}${m}${d}T${String(hours).padStart(2, "0")}${String(minutes || 0).padStart(2, "0")}00`;
-}
+// ─── Member Event Popover ─────────────────────────────────────────────────────
 
-function buildICS(eventsArr) {
-  const lines = [
-    "BEGIN:VCALENDAR",
-    "VERSION:2.0",
-    "PRODID:-//Macedonian Community Brisbane//MACO//EN",
-    "CALSCALE:GREGORIAN",
-    "METHOD:PUBLISH",
-    "X-WR-CALNAME:Macedonian Community Brisbane",
-    "X-WR-TIMEZONE:Australia/Brisbane",
-  ];
-  eventsArr.forEach(e => {
-    const dtStart = dateToICSFormat(e.date, e.time);
-    const dtEnd = dateToICSFormat(e.date, e.endTime);
-    lines.push(
-      "BEGIN:VEVENT",
-      `DTSTART;TZID=Australia/Brisbane:${dtStart}`,
-      `DTEND;TZID=Australia/Brisbane:${dtEnd}`,
-      `SUMMARY:${e.title}`,
-      `DESCRIPTION:${(e.description || "").replace(/\n/g, "\\n")}`,
-      `LOCATION:${e.location || ""}`,
-      `UID:${e.id}@maco-brisbane.org`,
-      "END:VEVENT"
-    );
-  });
-  lines.push("END:VCALENDAR");
-  return lines.join("\r\n");
-}
+function MemberEventPopover({ event, position, onClose, rsvps, toggleRsvp }) {
+  const popoverRef = useRef(null);
+  const { t, lang, cyrillicDisplay } = useLang();
+  const [hovRsvp, setHovRsvp] = useState(false);
 
-function downloadICS(content, filename) {
-  const blob = new Blob([content], { type: "text/calendar;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = filename; a.click();
-  URL.revokeObjectURL(url);
-}
+  useEffect(() => {
+    function handleOutside(e) {
+      if (popoverRef.current && !popoverRef.current.contains(e.target)) {
+        onClose();
+      }
+    }
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, [onClose]);
 
-function googleCalUrl(e) {
-  const start = dateToICSFormat(e.date, e.time);
-  const end = dateToICSFormat(e.date, e.endTime);
-  const params = new URLSearchParams({
-    action: "TEMPLATE",
-    text: e.title,
-    dates: `${start}/${end}`,
-    details: e.description || "",
-    location: e.location || "",
-  });
-  return `https://www.google.com/calendar/render?${params.toString()}`;
+  const going = rsvps[event.id];
+  const headerBg = categoryColors[event.category] || C.maroon;
+  const locale = DATE_LOCALES[lang] || DATE_LOCALES.en;
+  const dateStr = (event.start instanceof Date && !isNaN(event.start))
+    ? format(event.start, t("calendar.popover.dateTimeFormat"), { locale })
+    : (event.dateDisplay || event.date || "");
+  const timeRange = event.time && event.endTime
+    ? `${event.time} – ${event.endTime}`
+    : (event.time || "");
+
+  return (
+    <div
+      ref={popoverRef}
+      className="maco-cal-popover"
+      style={{
+        position: "fixed",
+        left: position.x,
+        top: position.y,
+        zIndex: 1000,
+        background: C.white,
+        border: `1px solid ${C.border}`,
+        boxShadow: "0 8px 32px rgba(0,0,0,0.18)",
+        width: 320,
+        maxWidth: "90vw",
+        borderRadius: 0,
+        fontFamily: body,
+      }}
+    >
+      <div style={{
+        background: headerBg,
+        padding: "14px 16px",
+        display: "flex",
+        alignItems: "flex-start",
+        justifyContent: "space-between",
+        gap: 8,
+      }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{
+            fontSize: 10, fontWeight: 700, fontFamily: body,
+            color: "rgba(255,255,255,0.65)", letterSpacing: 1,
+            textTransform: "uppercase", marginBottom: 4,
+          }}>
+            {event.category}
+          </div>
+          <div style={{
+            fontSize: 16, fontWeight: 700, color: "#ffffff",
+            lineHeight: 1.3,
+            fontFamily: lang === "mk" ? cyrillicDisplay : display,
+            wordBreak: "break-word",
+          }}>
+            {event.title}
+          </div>
+        </div>
+        <button
+          onClick={onClose}
+          aria-label={t("calendar.popover.close")}
+          style={{
+            background: "none", border: "none", cursor: "pointer",
+            color: "rgba(255,255,255,0.65)", fontSize: 22, lineHeight: 1,
+            padding: 0, flexShrink: 0, fontFamily: body,
+          }}
+        >
+          ×
+        </button>
+      </div>
+
+      <div style={{ padding: "14px 16px" }}>
+        <div style={{ marginBottom: 10 }}>
+          <Badge>{event.category}</Badge>
+        </div>
+        <div style={{ fontSize: 13, color: C.textMid, fontFamily: body, marginBottom: 12, fontWeight: 500 }}>
+          {dateStr}{timeRange ? ` · ${timeRange}` : ""}
+        </div>
+
+        {event.location && (
+          <div style={{ marginBottom: 10 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: C.textLight, textTransform: "uppercase", letterSpacing: 0.5, fontFamily: body, marginBottom: 3 }}>
+              {t("calendar.popover.location")}
+            </div>
+            <div style={{ fontSize: 13, color: C.textDark, fontFamily: body }}>{event.location}</div>
+          </div>
+        )}
+
+        {event.description && (
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: C.textLight, textTransform: "uppercase", letterSpacing: 0.5, fontFamily: body, marginBottom: 3 }}>
+              {t("calendar.popover.description")}
+            </div>
+            <p style={{ fontSize: 13, color: C.textMid, lineHeight: 1.6, fontFamily: body, margin: 0 }}>
+              {event.description}
+            </p>
+          </div>
+        )}
+
+        <div style={{ paddingTop: 12, borderTop: `1px solid ${C.border}` }}>
+          <button
+            onClick={() => toggleRsvp(event.id)}
+            onMouseEnter={() => setHovRsvp(true)}
+            onMouseLeave={() => setHovRsvp(false)}
+            style={{
+              width: "100%",
+              padding: "9px 0",
+              background: hovRsvp ? C.maroonDark : C.maroon,
+              color: C.cream,
+              border: "none",
+              borderRadius: 0,
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: "pointer",
+              fontFamily: body,
+              transition: "background 0.15s",
+            }}
+          >
+            {going ? t("calendar.member.going") : t("calendar.member.notGoing")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // ─── Calendar ─────────────────────────────────────────────────────────────────
 function CalendarSection({ events, rsvps, toggleRsvp }) {
-  const today = new Date();
-  const [year, setYear] = useState(today.getFullYear());
-  const [month, setMonth] = useState(today.getMonth());
-  const [selectedDay, setSelectedDay] = useState(null);
+  const [popover, setPopover] = useState(null); // { event, x, y }
 
-  const cells = getCalendarDays(year, month);
-  const eventsThisMonth = {};
-  events.forEach(e => {
-    const [y, m, d] = e.date.split("-").map(Number);
-    if (y === year && m - 1 === month) {
-      if (!eventsThisMonth[d]) eventsThisMonth[d] = [];
-      eventsThisMonth[d].push(e);
-    }
-  });
+  const rbcEvents = events.map(e => ({
+    ...e,
+    start: parseEventDate(e.date, e.time),
+    end:   parseEventDate(e.date, e.endTime || e.time),
+  }));
 
-  const selectedISO = selectedDay ? toISO(year, month, selectedDay) : null;
-  const dayEvents = selectedDay ? (eventsThisMonth[selectedDay] || []) : [];
-
-  const prevMonth = () => { if (month === 0) { setYear(y => y - 1); setMonth(11); } else setMonth(m => m - 1); setSelectedDay(null); };
-  const nextMonth = () => { if (month === 11) { setYear(y => y + 1); setMonth(0); } else setMonth(m => m + 1); setSelectedDay(null); };
+  const handleSelectEvent = (event, nativeEvent) => {
+    const POPOVER_W = 320;
+    const POPOVER_H = 380;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    let x = (nativeEvent?.clientX ?? 200) + 12;
+    let y = (nativeEvent?.clientY ?? 200) - 10;
+    if (x + POPOVER_W > vw - 16) x = vw - POPOVER_W - 16;
+    if (x < 8) x = 8;
+    if (y + POPOVER_H > vh - 16) y = vh - POPOVER_H - 16;
+    if (y < 8) y = 8;
+    setPopover({ event, x, y });
+  };
 
   return (
-    <SectionCard title="Community Calendar" action={
-      <button
-        onClick={() => {
-          // TODO: Replace with live iCal feed URL when backend is connected
-          const ics = buildICS(events);
-          downloadICS(ics, "maco-calendar.ics");
-        }}
-        style={{ padding: "7px 14px", border: `1px solid ${C.border}`, background: C.cream, borderRadius: 0, fontSize: 12, cursor: "pointer", fontFamily: body, color: C.textMid, fontWeight: 600 }}
-      >
-        ↓ Subscribe (.ics)
-      </button>
-    }>
-      <div className="calendar-layout" style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 24 }}>
-        {/* Calendar grid */}
-        <div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-            <button onClick={prevMonth} style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 0, padding: "6px 14px", cursor: "pointer", fontFamily: body, fontSize: 13, color: C.textMid }}>←</button>
-            <span style={{ fontFamily: display, fontSize: 18, color: C.textDark, letterSpacing: 1 }}>{MONTHS[month]} {year}</span>
-            <button onClick={nextMonth} style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 0, padding: "6px 14px", cursor: "pointer", fontFamily: body, fontSize: 13, color: C.textMid }}>→</button>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2 }}>
-            {DAYS.map(d => <div key={d} style={{ textAlign: "center", fontSize: 10, fontWeight: 700, color: C.textLight, fontFamily: body, padding: "6px 0", letterSpacing: 0.5 }}>{d}</div>)}
-            {cells.map((day, i) => {
-              if (!day) return <div key={i}/>;
-              const hasEvents = eventsThisMonth[day]?.length > 0;
-              const isToday = year === today.getFullYear() && month === today.getMonth() && day === today.getDate();
-              const isSelected = day === selectedDay;
-              return (
-                <div key={i} onClick={() => setSelectedDay(day === selectedDay ? null : day)} style={{
-                  aspectRatio: "1", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-                  cursor: hasEvents ? "pointer" : "default",
-                  background: isSelected ? C.maroon : isToday ? C.goldMuted : "transparent",
-                  border: isToday && !isSelected ? `1px solid ${C.gold}` : "1px solid transparent",
-                  position: "relative", borderRadius: 0,
-                }}>
-                  <span style={{ fontSize: 13, fontFamily: body, fontWeight: isToday ? 700 : 400, color: isSelected ? C.white : isToday ? C.maroon : C.textDark }}>{day}</span>
-                  {hasEvents && <div style={{ display: "flex", gap: 2, marginTop: 2 }}>
-                    {(eventsThisMonth[day] || []).slice(0, 3).map((e, j) => (
-                      <div key={j} style={{ width: 5, height: 5, borderRadius: "50%", background: isSelected ? C.white : (categoryColors[e.category] || C.maroon) }}/>
-                    ))}
-                  </div>}
-                </div>
-              );
-            })}
-          </div>
-          <div style={{ marginTop: 16, display: "flex", gap: 16, flexWrap: "wrap" }}>
-            {Object.entries(categoryColors).map(([cat, color]) => (
-              <div key={cat} style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                <div style={{ width: 8, height: 8, borderRadius: "50%", background: color }}/>
-                <span style={{ fontSize: 10, color: C.textLight, fontFamily: body }}>{cat}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+    <SectionCard title="Community Calendar">
+      <MacoCalendar
+        events={rbcEvents}
+        categoryColors={categoryColors}
+        onSelectEvent={handleSelectEvent}
+      />
 
-        {/* Event details panel */}
-        <div>
-          {dayEvents.length === 0
-            ? <div style={{ padding: "24px", border: `1px solid ${C.border}`, background: C.cream, textAlign: "center" }}>
-                <div style={{ fontSize: 24, marginBottom: 8 }}>📅</div>
-                <div style={{ fontSize: 13, color: C.textLight, fontFamily: body }}>Select a date with events to see details</div>
-              </div>
-            : dayEvents.map(e => {
-                const rsvpd = rsvps[e.id];
-                return (
-                  <div key={e.id} style={{ border: `1px solid ${C.border}`, background: C.white, marginBottom: 12, padding: "16px 18px" }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: categoryColors[e.category] || C.maroon, fontFamily: body, letterSpacing: 0.5, marginBottom: 6, textTransform: "uppercase" }}>{e.category}</div>
-                    <div style={{ fontSize: 15, fontWeight: 600, color: C.textDark, fontFamily: body, marginBottom: 6 }}>{e.title}</div>
-                    <div style={{ fontSize: 12, color: C.textLight, fontFamily: body, marginBottom: 4 }}>🕐 {e.time} – {e.endTime}</div>
-                    <div style={{ fontSize: 12, color: C.textLight, fontFamily: body, marginBottom: 12 }}>📍 {e.location}</div>
-                    <p style={{ fontSize: 12, color: C.textMid, lineHeight: 1.6, fontFamily: body, marginBottom: 14 }}>{e.description}</p>
-                    <button onClick={() => toggleRsvp(e.id)} style={{
-                      width: "100%", padding: "9px", border: `1px solid ${rsvpd ? C.red : C.maroon}`,
-                      borderRadius: 0, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: body,
-                      background: rsvpd ? "rgba(192,57,43,0.06)" : C.maroon,
-                      color: rsvpd ? C.red : C.white, marginBottom: 8,
-                    }}>
-                      {rsvpd ? "✓ RSVP'd — Remove" : "RSVP to this Event"}
-                    </button>
-                    {/* Calendar export buttons */}
-                    <div className="cal-add-buttons" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
-                      <button
-                        onClick={() => downloadICS(buildICS([e]), `${e.title.replace(/\s+/g, "-")}.ics`)}
-                        style={{ padding: "7px 6px", border: `1px solid ${C.border}`, background: C.cream, borderRadius: 0, fontSize: 11, cursor: "pointer", fontFamily: body, color: C.textMid, fontWeight: 600 }}
-                      >
-                        🍎 Apple Calendar
-                      </button>
-                      <a
-                        href={googleCalUrl(e)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ padding: "7px 6px", border: `1px solid ${C.border}`, background: C.cream, borderRadius: 0, fontSize: 11, cursor: "pointer", fontFamily: body, color: C.textMid, fontWeight: 600, textDecoration: "none", display: "block", textAlign: "center" }}
-                      >
-                        📅 Google Calendar
-                      </a>
-                    </div>
-                  </div>
-                );
-              })
-          }
-        </div>
-      </div>
+      {popover && (
+        <MemberEventPopover
+          event={popover.event}
+          position={{ x: popover.x, y: popover.y }}
+          onClose={() => setPopover(null)}
+          rsvps={rsvps}
+          toggleRsvp={toggleRsvp}
+        />
+      )}
     </SectionCard>
   );
 }
@@ -612,6 +608,84 @@ function HallHireSection() {
   );
 }
 
+function ContactCard({ admin }) {
+  return (
+    <div style={{ background: C.white, border: `1px solid ${C.border}`, padding: "16px 18px", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 14, flexWrap: "wrap" }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: C.maroon, fontFamily: body, letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 4 }}>
+          {admin.adminPosition}
+        </div>
+        <div style={{ fontSize: 16, fontWeight: 700, color: C.textDark, fontFamily: body }}>
+          {admin.fullName}
+        </div>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 13, fontFamily: body, alignItems: "flex-end", textAlign: "right" }}>
+        {admin.phone && (
+          <a href={`tel:${admin.phone.replace(/\s/g, "")}`} style={{ color: C.textDark, textDecoration: "none" }}>
+            📞 {admin.phone}
+          </a>
+        )}
+        {admin.email && (
+          <a href={`mailto:${admin.email}`} style={{ color: C.textDark, textDecoration: "none" }}>
+            ✉️ {admin.email}
+          </a>
+        )}
+      </div>
+    </div>
+  );
+}
+
+const POSITION_ORDER = ["President", "Vice President", "Secretary", "Treasurer", "Committee Member"];
+
+function HelpSection({ members }) {
+  const { t } = useLang();
+  const admins = [...members.filter((m) => m.adminPosition)].sort(
+    (a, b) => POSITION_ORDER.indexOf(a.adminPosition) - POSITION_ORDER.indexOf(b.adminPosition)
+  );
+  return (
+    <SectionCard title={t("help.title")}>
+      <p style={{ fontSize: 14, color: C.textMid, fontFamily: body, lineHeight: 1.7, marginBottom: 24 }}>
+        {t("help.intro")}
+      </p>
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        {admins.map((admin) => (
+          <ContactCard key={admin.id} admin={admin} />
+        ))}
+      </div>
+      <div style={{ marginTop: 28, padding: "14px 16px", background: C.cream, border: `1px solid ${C.border}`, fontSize: 13, color: C.textMid, fontFamily: body }}>
+        {t("help.generalEnquiries")}
+      </div>
+    </SectionCard>
+  );
+}
+
+function ConstitutionSection() {
+  const { t } = useLang();
+  return (
+    <SectionCard title={t("constitution.title")}>
+      <div style={{ fontSize: 12, color: C.textLight, fontFamily: body, marginBottom: 24, fontStyle: "italic" }}>
+        {t("constitution.lastUpdated")}: TBC
+      </div>
+      <div style={{ background: C.cream, border: `1px solid ${C.border}`, padding: "32px 24px", textAlign: "center", fontFamily: body }}>
+        <div style={{ fontSize: 32, marginBottom: 12 }}>📜</div>
+        <div style={{ fontSize: 15, fontWeight: 700, color: C.textDark, marginBottom: 6 }}>
+          {t("constitution.placeholderTitle")}
+        </div>
+        <div style={{ fontSize: 13, color: C.textMid, lineHeight: 1.6, maxWidth: 380, margin: "0 auto 20px" }}>
+          {t("constitution.placeholderBody")}
+        </div>
+        <button
+          disabled
+          title={t("constitution.downloadComingSoon")}
+          style={{ padding: "10px 22px", background: C.cream, color: C.textLight, border: `1px solid ${C.border}`, borderRadius: 0, fontSize: 13, fontWeight: 600, fontFamily: body, cursor: "not-allowed", opacity: 0.7 }}
+        >
+          ↓ {t("constitution.downloadButton")}
+        </button>
+      </div>
+    </SectionCard>
+  );
+}
+
 // ─── Nav ──────────────────────────────────────────────────────────────────────
 const NAV_ITEMS = [
   { key: "overview", icon: <HomeIcon/>, label: "Dashboard" },
@@ -620,18 +694,24 @@ const NAV_ITEMS = [
   { key: "calendar", icon: <CalIcon/>, label: "Calendar" },
   { key: "notices", icon: <BellIcon/>, label: "Notice Board" },
   { key: "hallhire", icon: <BuildingIcon/>, label: "Hall Hire" },
+  { key: "help", icon: <HelpIcon/>, label: "Help" },
+  { key: "constitution", icon: <DocumentIcon/>, label: "Constitution" },
 ];
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function MemberDashboard() {
   const navigate = useNavigate();
-  const { currentMember, updateMember, events, notices, rsvps, toggleRsvp, setRole } = useDemo();
+  const { currentMember, updateMember, events, notices, rsvps, toggleRsvp, setRole, notifications, dismissNotification, clearNotifications, members } = useDemo();
   const [section, setSection] = useState("overview");
   const { lang, setLang } = useLang();
 
   const member = currentMember;
+  const memberTier = currentMember?.tier ?? "general";
   const visibleEvents = events.filter(e =>
-    canSee(currentMember?.tier ?? "general", e.visibility ?? "general")
+    canSee(memberTier, e.visibility ?? "general")
+  );
+  const visibleNotifications = notifications.filter(n =>
+    !n.visibility || canSee(memberTier, n.visibility)
   );
 
   const handleSignOut = () => { setRole("public"); navigate("/"); };
@@ -647,8 +727,10 @@ export default function MemberDashboard() {
         position: "sticky", top: 36, zIndex: 100,
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ color: C.goldBright }}><SunIcon s={20}/></span>
-          <span className="nav-brand-name topbar-title" style={{ color: C.white, fontWeight: 700, fontSize: 14, fontFamily: display, letterSpacing: 1 }}>Macedonian Community of Brisbane</span>
+          <Link to="/" className="topbar-home-link" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
+            <span style={{ color: C.goldBright }}><SunIcon s={20}/></span>
+            <span className="nav-brand-name topbar-title" style={{ color: C.white, fontWeight: 700, fontSize: 14, fontFamily: display, letterSpacing: 1 }}>Macedonian Community of Brisbane</span>
+          </Link>
           <span className="member-top-nav-subtitle" style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", marginLeft: 8, padding: "3px 10px", background: "rgba(255,255,255,0.08)", fontWeight: 600, fontFamily: body }}>
             Member Portal
           </span>
@@ -659,7 +741,7 @@ export default function MemberDashboard() {
             <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 11, userSelect: "none" }}>·</span>
             <button onClick={() => setLang("mk")} style={{ background: "none", border: "none", borderRadius: 0, cursor: "pointer", fontFamily: body, fontSize: 12, fontWeight: lang === "mk" ? 700 : 500, color: lang === "mk" ? C.goldBright : "rgba(255,255,255,0.4)", padding: "4px 8px" }}>MK</button>
           </div>
-          <button onClick={() => navigate("/")} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.55)", fontSize: 12, fontFamily: body, fontWeight: 500 }}>Home</button>
+          <NotificationsBell notifications={visibleNotifications} onDismiss={dismissNotification} onClearAll={clearNotifications}/>
           <div style={{ width: 30, height: 30, borderRadius: "50%", background: C.goldBright, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: C.maroonDeep, fontFamily: body }}>
             {initials}
           </div>
@@ -696,6 +778,8 @@ export default function MemberDashboard() {
           {section === "calendar" && <CalendarSection events={visibleEvents} rsvps={rsvps} toggleRsvp={toggleRsvp}/>}
           {section === "notices" && <NoticeBoardSection notices={notices}/>}
           {section === "hallhire" && <HallHireSection/>}
+          {section === "help" && <HelpSection members={members}/>}
+          {section === "constitution" && <ConstitutionSection/>}
         </div>
       </div>
     </div>

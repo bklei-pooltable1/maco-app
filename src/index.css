@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Sun logo / brand — clickable home link */
+.topbar-home-link {
+  transition: opacity 0.15s;
+}
+.topbar-home-link:hover {
+  opacity: 0.85;
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
 }
@@ -346,7 +354,7 @@ html, body {
 
   /* ─── MacoCalendar ─────────────────────────────────────────────────────── */
   .maco-cal-wrapper {
-    height: 480px !important;
+    min-height: 480px !important;
   }
   .maco-cal-wrapper .rbc-toolbar {
     flex-direction: column !important;
@@ -362,6 +370,14 @@ html, body {
   }
   .maco-cal-wrapper .rbc-month-row {
     min-height: 60px !important;
+  }
+  /* Narrow columns (~50px): cap title to 1 line so chips don't overflow */
+  .rbc-month-view .rbc-event > div > div:first-child {
+    -webkit-line-clamp: 1 !important;
+  }
+  /* Mobile chip: 1-line title, so 56px is enough (vs 72px desktop) */
+  .rbc-month-view .rbc-event {
+    min-height: 56px !important;
   }
   /* Popover becomes a centred modal overlay on mobile */
   .maco-cal-popover {
@@ -392,5 +408,14 @@ html, body {
   }
   .modal-grid-2col {
     grid-template-columns: 1fr !important;
+  }
+  .notifications-dropdown {
+    position: fixed !important;
+    top: 100px !important;
+    left: 16px !important;
+    right: 16px !important;
+    width: auto !important;
+    max-width: none !important;
+    max-height: calc(100vh - 120px) !important;
   }
 }

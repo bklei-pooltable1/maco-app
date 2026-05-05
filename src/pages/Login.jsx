@@ -92,7 +92,7 @@ export default function Login() {
     <div style={{ minHeight: "100vh", background: C.cream, display: "flex", flexDirection: "column" }}>
       {/* Top bar */}
       <div style={{ background: C.maroon, padding: "0 24px", height: 52, display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: `2px solid ${C.goldBright}` }}>
-        <Link to="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
+        <Link to="/" className="topbar-home-link" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
           <span style={{ color: C.goldBright }}><SunIcon s={20}/></span>
           <span className="nav-brand-name" style={{ color: C.white, fontWeight: 700, fontSize: 14, fontFamily: display, letterSpacing: 1 }}>
             Macedonian Community of Brisbane
@@ -104,7 +104,9 @@ export default function Login() {
         <div style={{ width: "100%", maxWidth: 440 }}>
           {/* Logo */}
           <div style={{ textAlign: "center", marginBottom: 32 }}>
-            <span style={{ color: C.maroon }}><SunIcon s={44}/></span>
+            <Link to="/" className="topbar-home-link" style={{ display: "inline-flex", textDecoration: "none" }}>
+              <span style={{ color: C.maroon }}><SunIcon s={44}/></span>
+            </Link>
             <h1 style={{ fontSize: 22, fontWeight: 700, color: C.textDark, fontFamily: display, letterSpacing: 1.5, marginTop: 12 }}>
               {tab === "login" ? "Member Sign In" : "Create Account"}
             </h1>

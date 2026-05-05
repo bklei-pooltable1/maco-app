@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { SunIcon, BellIcon, LogOutIcon } from "../ui/Icons";
 import { C, body, display } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
@@ -28,10 +28,12 @@ export default function AppNav() {
       position: "sticky", top: 36, zIndex: 100,
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <span style={{ color: C.goldBright }}><SunIcon s={20}/></span>
-        <span style={{ color: C.white, fontWeight: 700, fontSize: 14, fontFamily: display, letterSpacing: 1 }}>
-          Macedonian Community of Brisbane
-        </span>
+        <Link to="/" className="topbar-home-link" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
+          <span style={{ color: C.goldBright }}><SunIcon s={20}/></span>
+          <span style={{ color: C.white, fontWeight: 700, fontSize: 14, fontFamily: display, letterSpacing: 1 }}>
+            Macedonian Community of Brisbane
+          </span>
+        </Link>
         <span style={{
           fontSize: 10, color: "rgba(255,255,255,0.5)", marginLeft: 8, padding: "3px 10px",
           borderRadius: 0, background: "rgba(255,255,255,0.08)", fontWeight: 600, fontFamily: body,

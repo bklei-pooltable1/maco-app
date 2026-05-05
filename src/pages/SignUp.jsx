@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { C, body, display } from "../theme";
 import { SunIcon, CheckIcon } from "../components/ui/Icons";
 import { useDemo } from "../context/DemoContext";
@@ -448,8 +448,10 @@ export default function SignUp() {
     <div style={{ minHeight: "100vh", background: C.cream, paddingTop: 60 }}>
       {/* Header */}
       <div className="signup-header" style={{ background: C.maroon, padding: "18px 48px", display: "flex", alignItems: "center", gap: 12, position: "fixed", top: 36, left: 0, right: 0, zIndex: 100, height: 52, boxSizing: "border-box", borderBottom: `2px solid ${C.goldBright}` }}>
-        <span style={{ color: C.goldBright }}><SunIcon s={20}/></span>
-        <span className="nav-brand-name" style={{ color: C.white, fontWeight: 700, fontSize: 14, fontFamily: display, letterSpacing: 1 }}>Macedonian Community of Brisbane</span>
+        <Link to="/" className="topbar-home-link" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none" }}>
+          <span style={{ color: C.goldBright }}><SunIcon s={20}/></span>
+          <span className="nav-brand-name" style={{ color: C.white, fontWeight: 700, fontSize: 14, fontFamily: display, letterSpacing: 1 }}>Macedonian Community of Brisbane</span>
+        </Link>
         <span className="signup-header-title" style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginLeft: 8, fontFamily: body }}>New Member Registration</span>
         <div style={{ marginLeft: "auto" }}>
           <button onClick={() => navigate("/")} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.5)", cursor: "pointer", fontSize: 12, fontFamily: body, fontWeight: 500 }}>

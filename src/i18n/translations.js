@@ -27,6 +27,8 @@ export const translations = {
       adminPanel: "ADMIN PANEL",
       myProfile: "My Profile",
       signOut: "Sign Out",
+      help:         "Help",
+      constitution: "Constitution",
     },
     hero: {
       badge: "Macedonian Community of Brisbane",
@@ -136,6 +138,17 @@ export const translations = {
         event: "Event",
       },
       noEvents: "No events in this range.",
+      upcomingThisMonth: "Upcoming this month",
+      member: {
+        going:    "Going",
+        notGoing: "Not going",
+      },
+      notifications: {
+        title:    "Notifications",
+        empty:    "No notifications",
+        clearAll: "Clear all",
+        bell:     "Notifications",
+      },
       popover: {
         edit:           "Edit",
         delete:         "Delete",
@@ -201,6 +214,19 @@ export const translations = {
       total:                "Total",
       noPaymentNow:         "No payment required now — invoice sent after committee approval.",
       capacityNote:         "Hall capacity: up to 150 guests. Bookings are subject to committee approval.",
+    },
+    help: {
+      title:            "Help & Contacts",
+      intro:            "Need to get in touch? Reach out to any committee member below for assistance.",
+      generalEnquiries: "For general enquiries, please contact the Secretary or call the community office directly.",
+    },
+    constitution: {
+      title:              "Constitution",
+      lastUpdated:        "Last updated",
+      placeholderTitle:   "Full document coming soon",
+      placeholderBody:    "The full constitution and bylaws of the Macedonian Community of Brisbane will be available here. Please check back shortly.",
+      downloadButton:     "Download PDF",
+      downloadComingSoon: "Available once the document is finalised",
     },
   },
 

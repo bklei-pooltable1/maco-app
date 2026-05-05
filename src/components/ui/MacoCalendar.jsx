@@ -91,6 +91,63 @@ function MacoToolbar({ label, onNavigate, onView, view, views }) {
   );
 }
 
+// ─── MonthEvent ───────────────────────────────────────────────────────────────
+
+function MonthEvent({ event }) {
+  const formatTime = (date) => {
+    if (!date) return "";
+    return new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", hour12: true })
+      .format(date)
+      .replace(/\s/g, "")
+      .toLowerCase();
+  };
+
+  const startStr  = formatTime(event.start);
+  const endStr    = formatTime(event.end);
+  const timeRange = startStr && endStr && startStr !== endStr
+    ? `${startStr} – ${endStr}`
+    : startStr;
+
+  return (
+    <div style={{
+      display: "flex", flexDirection: "column", gap: 1,
+      padding: "4px 6px", width: "100%", height: "100%",
+      overflow: "hidden", cursor: "pointer",
+    }}>
+      <div style={{
+        fontSize: 12, fontWeight: 700, color: "#ffffff",
+        lineHeight: 1.25,
+        display: "-webkit-box",
+        WebkitLineClamp: 2,
+        WebkitBoxOrient: "vertical",
+        overflow: "hidden",
+        wordBreak: "break-word",
+        marginBottom: 2,
+      }}>
+        {event.title}
+      </div>
+      {timeRange && (
+        <div style={{
+          fontSize: 10, fontWeight: 500, color: "rgba(255,255,255,0.85)",
+          lineHeight: 1.2, whiteSpace: "nowrap",
+          overflow: "hidden", textOverflow: "ellipsis",
+        }}>
+          {timeRange}
+        </div>
+      )}
+      {event.location && (
+        <div style={{
+          fontSize: 10, fontStyle: "italic", color: "rgba(255,255,255,0.75)",
+          lineHeight: 1.2, whiteSpace: "nowrap",
+          overflow: "hidden", textOverflow: "ellipsis",
+        }}>
+          {event.location}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function MacoCalendar({
   events = [],
   defaultView = "month",
@@ -139,8 +196,13 @@ export default function MacoCalendar({
     return isToday ? { style: { backgroundColor: C.goldLight } } : {};
   }, []);
 
+  const components = useMemo(() => ({
+    toolbar: MacoToolbar,
+    month: { event: MonthEvent },
+  }), []);
+
   return (
-    <div className="maco-cal-wrapper" style={{ height: 620, fontFamily: body, ...style }}>
+    <div className="maco-cal-wrapper" style={{ minHeight: 620, fontFamily: body, ...style }}>
       <Calendar
         localizer={localizer}
         events={events}
@@ -151,7 +213,7 @@ export default function MacoCalendar({
         eventPropGetter={eventPropGetter}
         dayPropGetter={dayPropGetter}
         onSelectEvent={onSelectEvent}
-        components={{ toolbar: MacoToolbar }}
+        components={components}
         popup
       />
     </div>

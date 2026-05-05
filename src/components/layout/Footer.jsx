@@ -37,12 +37,12 @@ export default function Footer() {
         <div className="footer-grid" style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr 1fr 1fr", gap: 32, marginBottom: 36 }}>
           {/* Brand */}
           <div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+            <Link to="/" className="topbar-home-link" style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14, textDecoration: "none" }}>
               <span style={{ color: C.goldBright }}><SunIcon s={20}/></span>
               <span style={{ color: C.white, fontWeight: 700, fontSize: 14, fontFamily: display, letterSpacing: 1 }}>
                 Macedonian Community of Brisbane
               </span>
-            </div>
+            </Link>
             <p style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", lineHeight: 1.75, fontFamily: body }}>
               {t("footer.tagline")}
             </p>

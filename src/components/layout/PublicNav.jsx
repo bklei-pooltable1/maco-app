@@ -46,9 +46,9 @@ export default function PublicNav() {
   if (role === "member") {
     return (
       <nav style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "18px 48px", maxWidth: 1000, margin: "0 auto", width: "100%", boxSizing: "border-box", position: "relative", zIndex: 2 }}>
-        <div style={{ width: 120 }}>
+        <Link to="/" className="topbar-home-link" style={{ width: 120, display: "flex", alignItems: "center", textDecoration: "none" }}>
           <span style={{ color: C.goldBright }}><SunIcon s={28}/></span>
-        </div>
+        </Link>
         <div style={{ display: "flex", alignItems: "center", gap: 22 }}>
           {[
             { label: t("nav.home"),         onClick: () => navigate("/") },
@@ -79,9 +79,9 @@ export default function PublicNav() {
   if (role === "admin") {
     return (
       <nav style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "18px 48px", maxWidth: 1000, margin: "0 auto", width: "100%", boxSizing: "border-box", position: "relative", zIndex: 2 }}>
-        <div style={{ width: 120 }}>
+        <Link to="/" className="topbar-home-link" style={{ width: 120, display: "flex", alignItems: "center", textDecoration: "none" }}>
           <span style={{ color: C.goldBright }}><SunIcon s={28}/></span>
-        </div>
+        </Link>
         <div style={{ display: "flex", alignItems: "center", gap: 22 }}>
           {[
             { label: t("nav.home"),       onClick: () => navigate("/") },
@@ -113,9 +113,9 @@ export default function PublicNav() {
   return (
     <>
       <nav className="public-nav-container" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "18px 48px", maxWidth: 1000, margin: "0 auto", width: "100%", boxSizing: "border-box", position: "relative", zIndex: 2 }}>
-        <div style={{ width: 120 }}>
+        <Link to="/" className="topbar-home-link" style={{ width: 120, display: "flex", alignItems: "center", textDecoration: "none" }}>
           <span style={{ color: C.goldBright }}><SunIcon s={28}/></span>
-        </div>
+        </Link>
         <div className="nav-desktop-links" style={{ display: "flex", alignItems: "center", gap: 26 }}>
           {publicNavLinks.map(({ label, id, onClick: customClick }) => (
             <span key={label} className="nav-link" onClick={customClick || (() => scrollTo(id))} style={{ color: "rgba(255,255,255,0.65)", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: body, letterSpacing: 1.2 }}>
@@ -153,7 +153,9 @@ export default function PublicNav() {
           overflowY: "auto",
         }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 40 }}>
-            <span style={{ color: C.goldBright }}><SunIcon s={28}/></span>
+            <Link to="/" onClick={() => setMobileOpen(false)} className="topbar-home-link" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
+              <span style={{ color: C.goldBright }}><SunIcon s={28}/></span>
+            </Link>
             <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
               <LangToggle/>
               <button onClick={() => setMobileOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", color: C.white, fontSize: 32, lineHeight: 1, padding: 4 }}>×</button>

@@ -95,6 +95,8 @@ export function DemoProvider({ children }) {
     setNotifications((prev) => [newNotification, ...prev]);
     return newNotification;
   };
+  const dismissNotification = (id) => setNotifications((prev) => prev.filter((n) => n.id !== id));
+  const clearNotifications = () => setNotifications([]);
 
   // Half-day slot blocking: { date: ["morning"] | ["afternoon"] | ["morning","afternoon"] }
   // A date is "fully blocked" when both morning+afternoon are taken (or a fullday booking exists)
@@ -128,7 +130,7 @@ export function DemoProvider({ children }) {
       currentAdmin, setCurrentAdmin,
       updateMemberPosition,
       rsvps, toggleRsvp,
-      notifications, addNotification,
+      notifications, addNotification, dismissNotification, clearNotifications,
     }}>
       {children}
     </DemoContext.Provider>

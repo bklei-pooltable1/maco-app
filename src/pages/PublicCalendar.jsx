@@ -1,33 +1,15 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { SunIcon } from "../components/ui/Icons";
+import { useState, useRef, useEffect } from "react";
+import { format } from "date-fns";
+import { enUS as enUSLocale, mk as mkLocale } from "date-fns/locale";
 import Badge from "../components/ui/Badge";
 import { C, body, display } from "../theme";
 import { useDemo } from "../context/DemoContext";
 import { useLang } from "../context/LangContext";
 import { canSee } from "../lib/tiers";
 import PublicNav from "../components/layout/PublicNav";
+import MacoCalendar from "../components/ui/MacoCalendar";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-
-const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const MONTHS = [
-  "January","February","March","April","May","June",
-  "July","August","September","October","November","December",
-];
-
-function getCalendarDays(year, month) {
-  const firstDay = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const cells = [];
-  for (let i = 0; i < firstDay; i++) cells.push(null);
-  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
-  return cells;
-}
-
-function toISO(year, month, day) {
-  return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-}
 
 const categoryColors = {
   "Weekly Service": C.maroon,
@@ -37,43 +19,170 @@ const categoryColors = {
   "Cultural Event": "#c0682b",
 };
 
+const DATE_LOCALES = { en: enUSLocale, mk: mkLocale };
+
+function parseEventDate(dateStr, timeStr) {
+  if (!dateStr) return new Date();
+  const [yr, mo, dy] = dateStr.split("-").map(Number);
+  if (!timeStr) return new Date(yr, mo - 1, dy, 0, 0);
+  const m = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+  if (!m) return new Date(yr, mo - 1, dy, 0, 0);
+  let h = parseInt(m[1]);
+  const min = parseInt(m[2]);
+  const ampm = m[3].toUpperCase();
+  if (ampm === "PM" && h !== 12) h += 12;
+  if (ampm === "AM" && h === 12) h = 0;
+  return new Date(yr, mo - 1, dy, h, min);
+}
+
+// ─── PublicEventPopover ───────────────────────────────────────────────────────
+
+function PublicEventPopover({ event, position, onClose }) {
+  const popoverRef = useRef(null);
+  const { t, lang, cyrillicDisplay } = useLang();
+
+  useEffect(() => {
+    function handleOutside(e) {
+      if (popoverRef.current && !popoverRef.current.contains(e.target)) {
+        onClose();
+      }
+    }
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, [onClose]);
+
+  const headerBg = categoryColors[event.category] || C.maroon;
+  const locale = DATE_LOCALES[lang] || DATE_LOCALES.en;
+  const dateStr = (event.start instanceof Date && !isNaN(event.start))
+    ? format(event.start, t("calendar.popover.dateTimeFormat"), { locale })
+    : (event.dateDisplay || event.date || "");
+  const timeRange = event.time && event.endTime
+    ? `${event.time} – ${event.endTime}`
+    : (event.time || "");
+
+  return (
+    <div
+      ref={popoverRef}
+      className="maco-cal-popover"
+      style={{
+        position: "fixed",
+        left: position.x,
+        top: position.y,
+        zIndex: 1000,
+        background: C.white,
+        border: `1px solid ${C.border}`,
+        boxShadow: "0 8px 32px rgba(0,0,0,0.18)",
+        width: 320,
+        maxWidth: "90vw",
+        borderRadius: 0,
+        fontFamily: body,
+      }}
+    >
+      <div style={{
+        background: headerBg,
+        padding: "14px 16px",
+        display: "flex",
+        alignItems: "flex-start",
+        justifyContent: "space-between",
+        gap: 8,
+      }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{
+            fontSize: 10, fontWeight: 700, fontFamily: body,
+            color: "rgba(255,255,255,0.65)", letterSpacing: 1,
+            textTransform: "uppercase", marginBottom: 4,
+          }}>
+            {event.category}
+          </div>
+          <div style={{
+            fontSize: 16, fontWeight: 700, color: "#ffffff",
+            lineHeight: 1.3,
+            fontFamily: lang === "mk" ? cyrillicDisplay : display,
+            wordBreak: "break-word",
+          }}>
+            {event.title}
+          </div>
+        </div>
+        <button
+          onClick={onClose}
+          aria-label={t("calendar.popover.close")}
+          style={{
+            background: "none", border: "none", cursor: "pointer",
+            color: "rgba(255,255,255,0.65)", fontSize: 22, lineHeight: 1,
+            padding: 0, flexShrink: 0, fontFamily: body,
+          }}
+        >
+          ×
+        </button>
+      </div>
+
+      <div style={{ padding: "14px 16px" }}>
+        <div style={{ marginBottom: 10 }}>
+          <Badge>{event.category}</Badge>
+        </div>
+        <div style={{ fontSize: 13, color: C.textMid, fontFamily: body, marginBottom: 12, fontWeight: 500 }}>
+          {dateStr}{timeRange ? ` · ${timeRange}` : ""}
+        </div>
+
+        {event.location && (
+          <div style={{ marginBottom: 10 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: C.textLight, textTransform: "uppercase", letterSpacing: 0.5, fontFamily: body, marginBottom: 3 }}>
+              {t("calendar.popover.location")}
+            </div>
+            <div style={{ fontSize: 13, color: C.textDark, fontFamily: body }}>{event.location}</div>
+          </div>
+        )}
+
+        {event.description && (
+          <div>
+            <div style={{ fontSize: 10, fontWeight: 700, color: C.textLight, textTransform: "uppercase", letterSpacing: 0.5, fontFamily: body, marginBottom: 3 }}>
+              {t("calendar.popover.description")}
+            </div>
+            <p style={{ fontSize: 13, color: C.textMid, lineHeight: 1.6, fontFamily: body, margin: 0 }}>
+              {event.description}
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Public Calendar ──────────────────────────────────────────────────────────
 
 export default function PublicCalendar() {
   const { events } = useDemo();
   const { t, lang, cyrillicDisplay } = useLang();
   const publicEvents = events.filter(e => canSee("general", e.visibility ?? "general"));
-  const today = new Date();
-  const [year, setYear] = useState(today.getFullYear());
-  const [month, setMonth] = useState(today.getMonth());
-  const [selectedDay, setSelectedDay] = useState(null);
+  const [popover, setPopover] = useState(null); // { event, x, y }
 
   const headingFont = lang === "mk" ? cyrillicDisplay : display;
 
-  const cells = getCalendarDays(year, month);
+  const rbcEvents = publicEvents.map(e => ({
+    ...e,
+    start: parseEventDate(e.date, e.time),
+    end:   parseEventDate(e.date, e.endTime || e.time),
+  }));
 
-  // Events indexed by day for this month
-  const eventsThisMonth = {};
-  publicEvents.forEach(e => {
-    const [y, m, d] = e.date.split("-").map(Number);
-    if (y === year && m - 1 === month) {
-      if (!eventsThisMonth[d]) eventsThisMonth[d] = [];
-      eventsThisMonth[d].push(e);
-    }
-  });
-
-  const prevMonth = () => {
-    if (month === 0) { setYear(y => y - 1); setMonth(11); }
-    else setMonth(m => m - 1);
-    setSelectedDay(null);
-  };
-  const nextMonth = () => {
-    if (month === 11) { setYear(y => y + 1); setMonth(0); }
-    else setMonth(m => m + 1);
-    setSelectedDay(null);
+  const handleSelectEvent = (event, nativeEvent) => {
+    const POPOVER_W = 320;
+    const POPOVER_H = 300;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    let x = (nativeEvent?.clientX ?? 200) + 12;
+    let y = (nativeEvent?.clientY ?? 200) - 10;
+    if (x + POPOVER_W > vw - 16) x = vw - POPOVER_W - 16;
+    if (x < 8) x = 8;
+    if (y + POPOVER_H > vh - 16) y = vh - POPOVER_H - 16;
+    if (y < 8) y = 8;
+    setPopover({ event, x, y });
   };
 
-  const dayEvents = selectedDay ? (eventsThisMonth[selectedDay] || []) : [];
+  const todayStr = new Date().toISOString().split("T")[0];
+  const upcomingEvents = publicEvents
+    .filter(e => e.date >= todayStr)
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(0, 5);
 
   return (
     <div style={{ fontFamily: body, background: C.cream, minHeight: "100vh" }}>
@@ -99,147 +208,57 @@ export default function PublicCalendar() {
 
       <div className="cal-main-content" style={{ maxWidth: 960, margin: "0 auto", padding: "32px 24px" }}>
 
-        {/* Calendar grid + event panel */}
-        <div className="public-cal-layout" style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 28, marginBottom: 48 }}>
-          {/* Calendar */}
-          <div style={{ background: C.white, border: `1px solid ${C.border}`, padding: 24 }}>
-            {/* Month nav */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-              <button onClick={prevMonth} style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 0, padding: "7px 16px", cursor: "pointer", fontFamily: body, fontSize: 14, color: C.textMid }}>←</button>
-              <span style={{ fontFamily: headingFont, fontSize: 20, color: C.textDark, letterSpacing: 1 }}>{MONTHS[month]} {year}</span>
-              <button onClick={nextMonth} style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 0, padding: "7px 16px", cursor: "pointer", fontFamily: body, fontSize: 14, color: C.textMid }}>→</button>
+        {/* MacoCalendar */}
+        <div style={{ background: C.white, border: `1px solid ${C.border}`, padding: 24, marginBottom: 28 }}>
+          <MacoCalendar
+            events={rbcEvents}
+            categoryColors={categoryColors}
+            onSelectEvent={handleSelectEvent}
+          />
+        </div>
+
+        {/* Upcoming this month */}
+        {upcomingEvents.length > 0 && (
+          <div style={{ background: C.white, border: `1px solid ${C.border}`, padding: "20px 24px" }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: C.textLight, textTransform: "uppercase", letterSpacing: 1, fontFamily: body, marginBottom: 14 }}>
+              {t("calendar.upcomingThisMonth")}
             </div>
-
-            {/* Day headers */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2, marginBottom: 4 }}>
-              {DAYS.map(d => (
-                <div key={d} style={{ textAlign: "center", fontSize: 10, fontWeight: 700, color: C.textLight, fontFamily: body, padding: "5px 0", letterSpacing: 0.5 }}>{d}</div>
-              ))}
-            </div>
-
-            {/* Cells */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2 }}>
-              {cells.map((day, i) => {
-                if (!day) return <div key={i}/>;
-                const iso = toISO(year, month, day);
-                const dayEvts = eventsThisMonth[day] || [];
-                const hasEvents = dayEvts.length > 0;
-                const isToday = year === today.getFullYear() && month === today.getMonth() && day === today.getDate();
-                const isSelected = day === selectedDay;
-
-                return (
-                  <div
-                    key={i}
-                    onClick={() => hasEvents && setSelectedDay(day === selectedDay ? null : day)}
-                    style={{
-                      aspectRatio: "1",
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      justifyContent: "flex-start",
-                      padding: "4px 2px",
-                      cursor: hasEvents ? "pointer" : "default",
-                      background: isSelected ? C.maroon : isToday ? C.goldMuted : C.white,
-                      border: isToday && !isSelected ? `1px solid ${C.gold}` : `1px solid ${C.border}`,
-                      position: "relative",
-                      overflow: "hidden",
-                    }}
-                  >
-                    <span style={{ fontSize: 12, fontFamily: body, fontWeight: isToday ? 700 : 400, color: isSelected ? C.white : isToday ? C.maroon : C.textDark, marginTop: 2 }}>
-                      {day}
-                    </span>
-                    {/* Event dots */}
-                    {hasEvents && (
-                      <div style={{ display: "flex", gap: 2, position: "relative", zIndex: 1 }}>
-                        {dayEvts.slice(0, 3).map((e, j) => (
-                          <div key={j} style={{ width: 5, height: 5, borderRadius: "50%", background: isSelected ? C.white : e.membersOnly ? C.border : (categoryColors[e.category] || C.maroon) }}/>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Legend */}
-            <div style={{ marginTop: 16, display: "flex", gap: 16, flexWrap: "wrap" }}>
-              {Object.entries(categoryColors).map(([cat, color]) => (
-                <div key={cat} style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: color }}/>
-                  <span style={{ fontSize: 10, color: C.textLight, fontFamily: body }}>{cat}</span>
+            {upcomingEvents.map((e, i) => (
+              <div
+                key={e.id}
+                style={{
+                  display: "flex",
+                  gap: 14,
+                  paddingBottom: i < upcomingEvents.length - 1 ? 12 : 0,
+                  marginBottom: i < upcomingEvents.length - 1 ? 12 : 0,
+                  borderBottom: i < upcomingEvents.length - 1 ? `1px solid ${C.border}` : "none",
+                  alignItems: "flex-start",
+                }}
+              >
+                <div style={{ fontSize: 11, fontWeight: 700, color: C.maroon, fontFamily: body, minWidth: 52, paddingTop: 2 }}>
+                  {e.date}
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Event detail panel */}
-          <div>
-            {dayEvents.length === 0 ? (
-              <div style={{ padding: 24, border: `1px solid ${C.border}`, background: C.white, textAlign: "center" }}>
-                <div style={{ fontSize: 28, marginBottom: 10 }}>📅</div>
-                <div style={{ fontSize: 13, color: C.textLight, fontFamily: body }}>
-                  Select a date with events to view details
-                </div>
-                <div style={{ marginTop: 16, borderTop: `1px solid ${C.border}`, paddingTop: 16 }}>
-                  <div style={{ fontSize: 12, color: C.textLight, fontFamily: body, marginBottom: 8 }}>Upcoming this month</div>
-                  {Object.entries(eventsThisMonth)
-                    .sort((a, b) => Number(a[0]) - Number(b[0]))
-                    .slice(0, 4)
-                    .map(([d, evts]) => evts.map(e => (
-                      <div key={e.id} style={{ fontSize: 12, color: C.textMid, fontFamily: body, marginBottom: 6, textAlign: "left", display: "flex", gap: 8 }}>
-                        <span style={{ color: C.maroon, fontWeight: 700, minWidth: 20 }}>{d}</span>
-                        <span>{e.title}</span>
-                      </div>
-                    )))
-                  }
-                </div>
-              </div>
-            ) : (
-              dayEvents.map(e => (
-                <div key={e.id} style={{ border: `1px solid ${C.border}`, background: C.white, marginBottom: 12, overflow: "hidden" }}>
-                  {e.membersOnly ? (
-                    // Member-only: obscured block
-                    <div style={{ padding: "20px 18px", position: "relative" }}>
-                      <div style={{ position: "absolute", inset: 0, background: "rgba(251,248,241,0.85)", backdropFilter: "blur(4px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 2 }}>
-                        <div style={{ fontSize: 20, marginBottom: 6 }}>🔒</div>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: C.textMid, fontFamily: body, marginBottom: 4 }}>
-                          {t("calendar.membersOnly")}
-                        </div>
-                        <div style={{ fontSize: 12, color: C.textLight, fontFamily: body, marginBottom: 12 }}>
-                          {t("calendar.reserved")}
-                        </div>
-                        <Link to="/signup" style={{ padding: "8px 18px", background: C.maroon, color: C.white, textDecoration: "none", fontSize: 12, fontWeight: 700, fontFamily: body }}>
-                          Join to View
-                        </Link>
-                      </div>
-                      {/* Blurred background content */}
-                      <div style={{ filter: "blur(3px)", userSelect: "none" }}>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: C.maroon, fontFamily: body, letterSpacing: 0.5, marginBottom: 6, textTransform: "uppercase" }}>{e.category}</div>
-                        <div style={{ fontSize: 15, fontWeight: 600, color: C.textDark, fontFamily: body, marginBottom: 4 }}>Members Only Event</div>
-                        <div style={{ fontSize: 12, color: C.textLight, fontFamily: body, marginBottom: 4 }}>🕐 {e.time} – {e.endTime}</div>
-                        <div style={{ fontSize: 12, color: C.textLight, fontFamily: body }}>📍 Community Hall</div>
-                      </div>
-                    </div>
-                  ) : (
-                    // Public event
-                    <div style={{ padding: "16px 18px" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: categoryColors[e.category] || C.maroon, fontFamily: body, letterSpacing: 0.5, textTransform: "uppercase" }}>{e.category}</div>
-                        <Badge>{e.category}</Badge>
-                      </div>
-                      <div style={{ fontSize: 15, fontWeight: 600, color: C.textDark, fontFamily: body, marginBottom: 6 }}>{e.title}</div>
-                      <div style={{ fontSize: 12, color: C.textLight, fontFamily: body, marginBottom: 4 }}>🕐 {e.time} – {e.endTime}</div>
-                      <div style={{ fontSize: 12, color: C.textLight, fontFamily: body, marginBottom: 12 }}>📍 {e.location}</div>
-                      <p style={{ fontSize: 12, color: C.textMid, lineHeight: 1.6, fontFamily: body }}>{e.description}</p>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: C.textDark, fontFamily: body, marginBottom: 2 }}>{e.title}</div>
+                  {e.time && (
+                    <div style={{ fontSize: 12, color: C.textLight, fontFamily: body }}>
+                      {e.time}{e.endTime ? ` – ${e.endTime}` : ""}
                     </div>
                   )}
                 </div>
-              ))
-            )}
+              </div>
+            ))}
           </div>
-        </div>
-
+        )}
       </div>
+
+      {popover && (
+        <PublicEventPopover
+          event={popover.event}
+          position={{ x: popover.x, y: popover.y }}
+          onClose={() => setPopover(null)}
+        />
+      )}
     </div>
   );
 }

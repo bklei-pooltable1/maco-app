@@ -93,6 +93,30 @@
   border-top: 1px solid #E8DDD3;
 }
 
+/* Taller rows for multi-line event chips */
+.rbc-month-view .rbc-month-row {
+  min-height: 150px;
+}
+
+/* Chip baseline — MonthEvent handles its own padding */
+.rbc-month-view .rbc-event {
+  min-height: 72px;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  overflow: hidden;
+}
+
+/* Clean stacking between chips */
+.rbc-month-view .rbc-row-segment {
+  padding: 0 2px 3px;
+}
+
+/* "+N more" stays compact */
+.rbc-month-view .rbc-show-more {
+  font-size: 10px;
+  padding: 2px 4px;
+}
+
 .rbc-day-bg + .rbc-day-bg {
   border-left: 1px solid #E8DDD3;
 }
@@ -245,6 +269,31 @@
 
 .rbc-allday-cell {
   background: #ffffff;
+}
+
+/* Week/day view — prevent event labels and titles overflowing column width */
+.rbc-time-view .rbc-event {
+  overflow: hidden !important;
+  padding: 4px 6px !important;
+  border-radius: 0 !important;
+}
+
+.rbc-time-view .rbc-event-label {
+  font-size: 10px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.rbc-time-view .rbc-event-content {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+  word-break: break-word !important;
+  overflow: hidden !important;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 /* ─── Agenda view ───────────────────────────────────────────────────────── */

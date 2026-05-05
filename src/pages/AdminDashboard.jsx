@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { C, body, display } from "../theme";
 import { SunIcon, PlusIcon, EditIcon, TrashIcon, LogOutIcon, BellIcon } from "../components/ui/Icons";
 import { TIERS, TIER_KEYS } from "../lib/tiers";
@@ -12,6 +12,7 @@ import { format } from "date-fns";
 import { enUS as enUSLocale, mk as mkLocale } from "date-fns/locale";
 import { useLang } from "../context/LangContext";
 import MacoCalendar from "../components/ui/MacoCalendar";
+import NotificationsBell from "../components/ui/NotificationsBell";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -1321,7 +1322,7 @@ function SuperAdminTab({ members, updateMemberPosition }) {
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  const { members, addMember, updateMember, events, addEvent, updateEvent, deleteEvent, notices, addNotice, updateNotice, deleteNotice, togglePinNotice, hallHireBookings, addHallHireBooking, updateBookingStatus, blockedDates, blockedSlots, setRole, addNotification, currentAdmin, updateMemberPosition } = useDemo();
+  const { members, addMember, updateMember, events, addEvent, updateEvent, deleteEvent, notices, addNotice, updateNotice, deleteNotice, togglePinNotice, hallHireBookings, addHallHireBooking, updateBookingStatus, blockedDates, blockedSlots, setRole, addNotification, notifications, dismissNotification, clearNotifications, currentAdmin, updateMemberPosition } = useDemo();
   const [tab, setTab] = useState("Analytics");
   const { lang, setLang, t } = useLang();
   const [toast, setToast] = useState(null);
@@ -1343,8 +1344,10 @@ export default function AdminDashboard() {
       {/* Top nav */}
       <div style={{ background: C.maroon, padding: "0 24px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 52, borderBottom: `2px solid ${C.goldBright}`, position: "sticky", top: 36, zIndex: 100 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ color: C.goldBright }}><SunIcon s={20}/></span>
-          <span className="nav-brand-name topbar-title" style={{ color: C.white, fontWeight: 700, fontSize: 14, fontFamily: display, letterSpacing: 1 }}>Macedonian Community of Brisbane</span>
+          <Link to="/" className="topbar-home-link" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
+            <span style={{ color: C.goldBright }}><SunIcon s={20}/></span>
+            <span className="nav-brand-name topbar-title" style={{ color: C.white, fontWeight: 700, fontSize: 14, fontFamily: display, letterSpacing: 1 }}>Macedonian Community of Brisbane</span>
+          </Link>
           <span className="admin-top-nav-title" style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", marginLeft: 8, padding: "3px 10px", background: "rgba(255,255,255,0.08)", fontWeight: 600, fontFamily: body }}>Committee Admin</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
@@ -1353,7 +1356,7 @@ export default function AdminDashboard() {
             <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 11, userSelect: "none" }}>·</span>
             <button onClick={() => setLang("mk")} style={{ background: "none", border: "none", borderRadius: 0, cursor: "pointer", fontFamily: body, fontSize: 12, fontWeight: lang === "mk" ? 700 : 500, color: lang === "mk" ? C.goldBright : "rgba(255,255,255,0.4)", padding: "4px 8px" }}>MK</button>
           </div>
-          <button onClick={() => navigate("/")} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.55)", fontSize: 12, fontFamily: body, fontWeight: 500 }}>Home</button>
+          <NotificationsBell notifications={notifications} onDismiss={dismissNotification} onClearAll={clearNotifications}/>
           <button onClick={handleSignOut} title="Sign out" style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", padding: 4 }}>
             <LogOutIcon/>
           </button>
