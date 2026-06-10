@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { C, body, display } from "../theme";
-import { SunIcon, PlusIcon, EditIcon, TrashIcon, LogOutIcon, BellIcon } from "../components/ui/Icons";
+import { SunIcon, PlusIcon, EditIcon, TrashIcon, LogOutIcon, BellIcon, CalIcon, UsersIcon, BuildingIcon, MailIcon, ShieldIcon, DocumentIcon, ChartIcon } from "../components/ui/Icons";
 import { TIERS, TIER_KEYS } from "../lib/tiers";
 import { POSITIONS } from "../lib/positions";
 import Badge from "../components/ui/Badge";
@@ -1339,6 +1339,16 @@ function AdminNotificationsTab({ adminNotificationPrefs, updateAdminNotification
   );
 }
 
+const ADMIN_TAB_ICONS = {
+  "Analytics":    <ChartIcon/>,
+  "Members":      <UsersIcon/>,
+  "Events":       <CalIcon/>,
+  "Notice Board": <DocumentIcon/>,
+  "Hall Hire":    <BuildingIcon/>,
+  "Notifications":<MailIcon/>,
+  "Super Admin":  <ShieldIcon/>,
+};
+
 // ─── Main Admin Dashboard ─────────────────────────────────────────────────────
 
 export default function AdminDashboard() {
@@ -1384,28 +1394,36 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Tab bar */}
-      <div className="admin-tab-bar" style={{ background: C.white, borderBottom: `1px solid ${C.border}`, padding: "0 24px", display: "flex", gap: 0, position: "sticky", top: 88, zIndex: 90 }}>
-        {tabs.map(tabKey => (
-          <button key={tabKey} onClick={() => setTab(tabKey)} style={{
-            padding: "14px 20px", border: "none", background: "none", cursor: "pointer", fontFamily: body,
-            fontSize: 13, fontWeight: tab === tabKey ? 700 : 500, color: tab === tabKey ? C.maroon : C.textMid,
-            borderBottom: tab === tabKey ? `2px solid ${C.maroon}` : "2px solid transparent",
-            marginBottom: -1,
-          }}>
-            {tabKey === "Super Admin" ? t("superAdmin.tabLabel") : tabKey === "Notifications" ? t("notifications.tabLabel") : tabKey}
-          </button>
-        ))}
-      </div>
+      <div className="member-dashboard-layout" style={{ display: "flex" }}>
+        <div className="member-dashboard-sidebar" style={{ width: 210, background: C.white, borderRight: `1px solid ${C.border}`, padding: "16px 10px", minHeight: "calc(100vh - 88px)", flexShrink: 0, position: "sticky", top: 88 }}>
+          {tabs.map((tabKey) => {
+            const active = tab === tabKey;
+            return (
+              <button key={tabKey} onClick={() => setTab(tabKey)} style={{
+                display: "flex", alignItems: "center", gap: 10, padding: "10px 12px",
+                border: "none", background: active ? "rgba(140,26,17,0.08)" : "transparent",
+                borderRadius: 0, width: "100%", color: active ? C.maroon : C.textMid,
+                fontSize: 13, fontWeight: active ? 600 : 500, cursor: "pointer",
+                textAlign: "left", fontFamily: body,
+              }}>
+                <span style={{ display: "flex", alignItems: "center", width: 16, flexShrink: 0 }}>
+                  {ADMIN_TAB_ICONS[tabKey]}
+                </span>
+                {tabKey === "Super Admin" ? t("superAdmin.tabLabel") : tabKey === "Notifications" ? t("notifications.tabLabel") : tabKey}
+              </button>
+            );
+          })}
+        </div>
 
-      <div className="admin-content" style={{ maxWidth: 1200, margin: "0 auto", padding: 28 }}>
-        {tab === "Analytics" && <AnalyticsTab members={members}/>}
-        {tab === "Members" && <MembersTab members={members} addMember={addMember} updateMember={updateMember}/>}
-        {tab === "Events" && <EventsTab events={events} addEvent={addEvent} updateEvent={updateEvent} deleteEvent={deleteEvent} showToast={showToast}/>}
-        {tab === "Notice Board" && <NoticeBoardTab notices={notices} addNotice={addNotice} updateNotice={updateNotice} deleteNotice={deleteNotice} togglePinNotice={togglePinNotice} showToast={showToast}/>}
-        {tab === "Hall Hire" && <HallHireTab hallHireBookings={hallHireBookings} updateBookingStatus={updateBookingStatus} blockedDates={blockedDates} blockedSlots={blockedSlots} addHallHireBooking={addHallHireBooking}/>}
-        {tab === "Super Admin" && <SuperAdminTab members={members} updateMemberPosition={updateMemberPosition}/>}
-        {tab === "Notifications" && <AdminNotificationsTab adminNotificationPrefs={adminNotificationPrefs} updateAdminNotificationPrefs={updateAdminNotificationPrefs}/>}
+        <div className="admin-content" style={{ flex: 1, padding: 28, maxWidth: 1200 }}>
+          {tab === "Analytics" && <AnalyticsTab members={members}/>}
+          {tab === "Members" && <MembersTab members={members} addMember={addMember} updateMember={updateMember}/>}
+          {tab === "Events" && <EventsTab events={events} addEvent={addEvent} updateEvent={updateEvent} deleteEvent={deleteEvent} showToast={showToast}/>}
+          {tab === "Notice Board" && <NoticeBoardTab notices={notices} addNotice={addNotice} updateNotice={updateNotice} deleteNotice={deleteNotice} togglePinNotice={togglePinNotice} showToast={showToast}/>}
+          {tab === "Hall Hire" && <HallHireTab hallHireBookings={hallHireBookings} updateBookingStatus={updateBookingStatus} blockedDates={blockedDates} blockedSlots={blockedSlots} addHallHireBooking={addHallHireBooking}/>}
+          {tab === "Super Admin" && <SuperAdminTab members={members} updateMemberPosition={updateMemberPosition}/>}
+          {tab === "Notifications" && <AdminNotificationsTab adminNotificationPrefs={adminNotificationPrefs} updateAdminNotificationPrefs={updateAdminNotificationPrefs}/>}
+        </div>
       </div>
 
       <Toast message={toast?.message} visible={!!toast} onDismiss={() => setToast(null)}/>

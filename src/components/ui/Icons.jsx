@@ -134,3 +134,9 @@ export const DocumentIcon = () => (
     <line x1="10" y1="9" x2="8" y2="9"/>
   </svg>
 );
+
+export const ChartIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <path d="M2 20h20M6 20V14M12 20V4M18 20V10"/>
+  </svg>
+);
