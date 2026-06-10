@@ -1339,6 +1339,72 @@ function AdminNotificationsTab({ adminNotificationPrefs, updateAdminNotification
   );
 }
 
+// ─── Admin Profile Tab ─────────────────────────────────────────────────────────
+
+function AdminProfileTab({ admin, updateMember, setCurrentAdmin }) {
+  const { t } = useLang();
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState({ firstName: admin.firstName, lastName: admin.lastName, email: admin.email, phone: admin.phone });
+  const [saved, setSaved] = useState(false);
+
+  const save = () => {
+    const patch = { ...form, fullName: `${form.firstName} ${form.lastName}` };
+    updateMember(admin.id, patch);
+    setCurrentAdmin(prev => ({ ...prev, ...patch }));
+    setEditing(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  const inputStyle = { width: "100%", padding: "9px 12px", border: `1px solid ${C.border}`, borderRadius: 0, fontSize: 13, fontFamily: body, color: C.textDark, background: C.white, boxSizing: "border-box" };
+  const readStyle = { fontSize: 14, color: C.textDark, fontFamily: body, padding: "9px 0" };
+
+  return (
+    <div style={{ background: C.white, border: `1px solid ${C.border}`, marginBottom: 24 }}>
+      <div style={{ padding: "16px 24px", borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h3 style={{ fontFamily: display, fontSize: 16, color: C.textDark, letterSpacing: 0.5, margin: 0 }}>{t("nav.myProfile")}</h3>
+        {editing
+          ? <div style={{ display: "flex", gap: 10 }}>
+              <button onClick={() => setEditing(false)} style={{ padding: "7px 16px", border: `1px solid ${C.border}`, background: "transparent", borderRadius: 0, fontSize: 12, cursor: "pointer", fontFamily: body }}>Cancel</button>
+              <button onClick={save} style={{ padding: "7px 16px", background: C.maroon, color: C.white, border: "none", borderRadius: 0, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: body }}>Save Changes</button>
+            </div>
+          : <button onClick={() => setEditing(true)} style={{ padding: "7px 16px", border: `1px solid ${C.border}`, background: "transparent", borderRadius: 0, fontSize: 12, cursor: "pointer", fontFamily: body, color: C.textDark }}>Edit Profile</button>
+        }
+      </div>
+      <div style={{ padding: 24 }}>
+        {saved && <div style={{ background: C.greenLight, color: C.green, padding: "10px 14px", fontSize: 13, fontFamily: body, marginBottom: 16 }}>Profile updated successfully</div>}
+        <div className="profile-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 24px" }}>
+          {[
+            { label: "First Name", key: "firstName" },
+            { label: "Last Name",  key: "lastName" },
+            { label: "Email",      key: "email" },
+            { label: "Phone",      key: "phone" },
+          ].map(({ label, key }) => (
+            <div key={key} style={{ borderBottom: `1px solid ${C.border}`, paddingBottom: 12, marginBottom: 12 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: C.textLight, fontFamily: body, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>{label}</div>
+              {editing
+                ? <input style={inputStyle} value={form[key] || ""} onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))}/>
+                : <div style={readStyle}>{admin[key] || "—"}</div>
+              }
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop: 16 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: C.textLight, fontFamily: body, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>{t("adminProfile.committeePosition")}</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 14, color: C.textDark, fontFamily: body }}>{admin.adminPosition || "—"}</span>
+            {admin.isSuperAdmin && (
+              <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase", color: C.maroon, fontFamily: body }}>
+                {t("superAdmin.superAdminBadge")}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const ADMIN_TAB_ICONS = {
   "Analytics":    <ChartIcon/>,
   "Members":      <UsersIcon/>,
@@ -1346,6 +1412,7 @@ const ADMIN_TAB_ICONS = {
   "Notice Board": <DocumentIcon/>,
   "Hall Hire":    <BuildingIcon/>,
   "Notifications":<MailIcon/>,
+  "My Profile":   <UsersIcon/>,
   "Super Admin":  <ShieldIcon/>,
 };
 
@@ -1353,13 +1420,13 @@ const ADMIN_TAB_ICONS = {
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  const { members, addMember, updateMember, events, addEvent, updateEvent, deleteEvent, notices, addNotice, updateNotice, deleteNotice, togglePinNotice, hallHireBookings, addHallHireBooking, updateBookingStatus, blockedDates, blockedSlots, setRole, addNotification, notifications, dismissNotification, clearNotifications, currentAdmin, updateMemberPosition, adminNotificationPrefs, updateAdminNotificationPrefs } = useDemo();
+  const { members, addMember, updateMember, events, addEvent, updateEvent, deleteEvent, notices, addNotice, updateNotice, deleteNotice, togglePinNotice, hallHireBookings, addHallHireBooking, updateBookingStatus, blockedDates, blockedSlots, setRole, addNotification, notifications, dismissNotification, clearNotifications, currentAdmin, setCurrentAdmin, updateMemberPosition, adminNotificationPrefs, updateAdminNotificationPrefs } = useDemo();
   const [tab, setTab] = useState("Analytics");
   const { lang, setLang, t } = useLang();
   const [toast, setToast] = useState(null);
   const showToast = (message) => setToast({ message });
 
-  const tabs = ["Analytics", "Members", "Events", "Notice Board", "Hall Hire", "Notifications"];
+  const tabs = ["Analytics", "Members", "Events", "Notice Board", "Hall Hire", "Notifications", "My Profile"];
   if (currentAdmin?.isSuperAdmin) tabs.push("Super Admin");
 
   useEffect(() => {
@@ -1409,7 +1476,7 @@ export default function AdminDashboard() {
                 <span style={{ display: "flex", alignItems: "center", width: 16, flexShrink: 0 }}>
                   {ADMIN_TAB_ICONS[tabKey]}
                 </span>
-                {tabKey === "Super Admin" ? t("superAdmin.tabLabel") : tabKey === "Notifications" ? t("notifications.tabLabel") : tabKey}
+                {tabKey === "Super Admin" ? t("superAdmin.tabLabel") : tabKey === "Notifications" ? t("notifications.tabLabel") : tabKey === "My Profile" ? t("nav.myProfile") : tabKey}
               </button>
             );
           })}
@@ -1423,6 +1490,7 @@ export default function AdminDashboard() {
           {tab === "Hall Hire" && <HallHireTab hallHireBookings={hallHireBookings} updateBookingStatus={updateBookingStatus} blockedDates={blockedDates} blockedSlots={blockedSlots} addHallHireBooking={addHallHireBooking}/>}
           {tab === "Super Admin" && <SuperAdminTab members={members} updateMemberPosition={updateMemberPosition}/>}
           {tab === "Notifications" && <AdminNotificationsTab adminNotificationPrefs={adminNotificationPrefs} updateAdminNotificationPrefs={updateAdminNotificationPrefs}/>}
+          {tab === "My Profile" && <AdminProfileTab admin={currentAdmin} updateMember={updateMember} setCurrentAdmin={setCurrentAdmin}/>}
         </div>
       </div>
 

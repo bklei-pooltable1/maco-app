@@ -6,7 +6,7 @@ import { SunIcon, HomeIcon, CalIcon, BellIcon, BuildingIcon, UsersIcon, LogOutIc
 import Badge from "../components/ui/Badge";
 import { useDemo } from "../context/DemoContext";
 import { getPricing } from "../data/mockData";
-import { canSee } from "../lib/tiers";
+import { canSee, TIERS } from "../lib/tiers";
 import { format } from "date-fns";
 import { enUS as enUSLocale, mk as mkLocale } from "date-fns/locale";
 import MacoCalendar from "../components/ui/MacoCalendar";
@@ -68,12 +68,20 @@ function OverviewSection({ member, events, setSection, notices }) {
         <div>
           <div style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", fontFamily: body, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Welcome back</div>
           <h2 style={{ fontFamily: display, fontSize: 26, color: C.white, letterSpacing: 1, margin: "0 0 10px" }}>{member.fullName}</h2>
-          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
             <span style={{ background: C.green, color: C.white, fontSize: 11, fontWeight: 700, padding: "3px 12px", fontFamily: body, letterSpacing: 0.5 }}>
               ✓ ACTIVE MEMBER
             </span>
             <span style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", fontFamily: body }}>
               {member.planType} · Renews {member.renewalDate}
+            </span>
+            <span style={{
+              display: "inline-block", padding: "2px 8px",
+              fontSize: 10, fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase",
+              color: C.white, background: TIERS[member.tier ?? "general"].color,
+              fontFamily: body, borderRadius: 0,
+            }}>
+              {t(`tiers.${member.tier ?? "general"}`)}
             </span>
           </div>
         </div>
@@ -124,6 +132,7 @@ function OverviewSection({ member, events, setSection, notices }) {
 
 // ─── My Profile ────────────────────────────────────────────────────────────────
 function ProfileSection({ member, updateMember }) {
+  const { t } = useLang();
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ ...member });
   const [saved, setSaved] = useState(false);
@@ -165,6 +174,18 @@ function ProfileSection({ member, updateMember }) {
             }
           </div>
         ))}
+      </div>
+
+      <div style={{ marginTop: 16 }}>
+        <div style={{ fontSize: 11, fontWeight: 600, color: C.textLight, fontFamily: body, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>{t("profile.membershipTier")}</div>
+        <span style={{
+          display: "inline-block", padding: "2px 8px",
+          fontSize: 10, fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase",
+          color: C.white, background: TIERS[member.tier ?? "general"].color,
+          fontFamily: body, borderRadius: 0,
+        }}>
+          {t(`tiers.${member.tier ?? "general"}`)}
+        </span>
       </div>
 
       <div style={{ marginTop: 8 }}>

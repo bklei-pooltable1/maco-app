@@ -4,9 +4,9 @@
 export const translations = {
   en: {
     tiers: {
-      general:               "General",
-      financial:             "Financial",
-      foundational:          "Foundational",
+      general:               "General Member",
+      financial:             "Financial Member",
+      foundational:          "Foundational Member",
       visibilityLabel:       "Visibility",
       visibilityGeneral:     "General — everyone (incl. public)",
       visibilityFinancial:   "Financial members and above",
@@ -253,6 +253,12 @@ export const translations = {
       noticesPreviewTitle: "Notice Board",
       viewAll:             "View all →",
       noNotices:           "No notices.",
+    },
+    profile: {
+      membershipTier: "Membership Tier",
+    },
+    adminProfile: {
+      committeePosition: "Committee Position",
     },
   },
 

@@ -1,8 +1,8 @@
 // Hex values must stay in sync with src/theme.js — see C.* tokens for textMid, green, gold.
 export const TIERS = {
-  general:      { rank: 1, label: "General",      color: "#6B5248" },
-  financial:    { rank: 2, label: "Financial",    color: "#2D8A4E" },
-  foundational: { rank: 3, label: "Foundational", color: "#D8A737" },
+  general:      { rank: 1, label: "General Member",      color: "#6B5248" },
+  financial:    { rank: 2, label: "Financial Member",    color: "#2D8A4E" },
+  foundational: { rank: 3, label: "Foundational Member", color: "#D8A737" },
 };
 
 export const TIER_KEYS = ["general", "financial", "foundational"];
