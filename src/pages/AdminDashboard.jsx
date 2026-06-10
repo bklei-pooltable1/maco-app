@@ -716,21 +716,24 @@ function EventsTab({ events, addEvent, updateEvent, deleteEvent, showToast }) {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-        <h2 style={{ fontFamily: display, fontSize: 20, color: C.textDark, margin: 0, letterSpacing: 0.5 }}>Events Calendar</h2>
-        <button
-          onClick={() => { setEditingEvent(null); setForm({ title: "", date: "", time: "", endTime: "", category: "Weekly Service", description: "", location: "", notify: true, visibility: "general" }); setShowForm(true); }}
-          style={{ padding: "9px 18px", background: C.maroon, color: C.white, border: "none", borderRadius: 0, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: body, display: "flex", alignItems: "center", gap: 6 }}
-        >
-          <PlusIcon/> Add Event
-        </button>
+      <div style={{ background: C.white, border: `1px solid ${C.border}`, marginBottom: 24 }}>
+        <div style={{ padding: "16px 24px", borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <h3 style={{ fontFamily: display, fontSize: 16, color: C.textDark, letterSpacing: 0.5, margin: 0 }}>Events Calendar</h3>
+          <button
+            onClick={() => { setEditingEvent(null); setForm({ title: "", date: "", time: "", endTime: "", category: "Weekly Service", description: "", location: "", notify: true, visibility: "general" }); setShowForm(true); }}
+            style={{ padding: "9px 18px", background: C.maroon, color: C.white, border: "none", borderRadius: 0, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: body, display: "flex", alignItems: "center", gap: 6 }}
+          >
+            <PlusIcon/> Add Event
+          </button>
+        </div>
+        <div style={{ padding: 24 }}>
+          <MacoCalendar
+            events={rbcEvents}
+            categoryColors={categoryColors}
+            onSelectEvent={handleSelectEvent}
+          />
+        </div>
       </div>
-
-      <MacoCalendar
-        events={rbcEvents}
-        categoryColors={categoryColors}
-        onSelectEvent={handleSelectEvent}
-      />
 
       {popover && (
         <EventPopover
