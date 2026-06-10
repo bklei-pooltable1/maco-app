@@ -6,6 +6,8 @@ import {
   INITIAL_HALL_HIRE,
   DEMO_MEMBER,
   DEMO_ADMIN,
+  INITIAL_NOTIFICATIONS,
+  INITIAL_ADMIN_NOTIFICATION_PREFS,
 } from "../data/mockData";
 
 const DemoContext = createContext(null);
@@ -19,12 +21,47 @@ export function DemoProvider({ children }) {
   const [currentMember, setCurrentMember] = useState(DEMO_MEMBER);
   const [currentAdmin, setCurrentAdmin] = useState(DEMO_ADMIN);
   const [rsvps, setRsvps] = useState({}); // { [eventId]: true }
-  const [notifications, setNotifications] = useState([]);
+  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
+  const [adminNotificationPrefs, setAdminNotificationPrefs] = useState(INITIAL_ADMIN_NOTIFICATION_PREFS);
+
+  // Notifications — defined before addMember / addHallHireBooking to avoid ordering concerns
+  const addNotification = (notification) => {
+    const category =
+      notification.category ??
+      (notification.type?.startsWith("notice_") ? "noticeboard"
+        : notification.type?.startsWith("event_") ? "events"
+        : undefined);
+    const newNotification = {
+      ...notification,
+      category,
+      id: `notif${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      recipientCount: notification.recipientCount ?? members.length,
+      triggeredBy: notification.triggeredBy ?? "Admin",
+    };
+    setNotifications((prev) => [newNotification, ...prev]);
+    return newNotification;
+  };
+  const dismissNotification = (id) => setNotifications((prev) => prev.filter((n) => n.id !== id));
+  const clearNotifications = () => setNotifications([]);
+
+  const updateAdminNotificationPrefs = (category, channel, value) => {
+    setAdminNotificationPrefs((prev) => ({
+      ...prev,
+      [category]: { ...prev[category], [channel]: value },
+    }));
+  };
 
   // Members
   const addMember = (member) => {
     const newMember = { ...member, id: `m${Date.now()}`, tier: member.tier ?? "general", joinDate: new Date().toISOString().split("T")[0] };
     setMembers((prev) => [newMember, ...prev]);
+    addNotification({
+      audience: "admin",
+      category: "signups",
+      title: "New member signed up",
+      message: `${newMember.fullName} joined as a new ${newMember.planType || "Individual"} member.`,
+    });
     return newMember;
   };
   const updateMember = (id, updates) => {
@@ -72,6 +109,12 @@ export function DemoProvider({ children }) {
       submittedAt: new Date().toISOString().split("T")[0],
     };
     setHallHireBookings((prev) => [newBooking, ...prev]);
+    addNotification({
+      audience: "admin",
+      category: "hallHire",
+      title: "New hall hire enquiry",
+      message: `${newBooking.name} requested the hall for ${newBooking.dateDisplay || newBooking.date}.`,
+    });
     return newBooking;
   };
   const updateBookingStatus = (id, status) => {
@@ -83,20 +126,17 @@ export function DemoProvider({ children }) {
     setRsvps((prev) => ({ ...prev, [eventId]: !prev[eventId] }));
   };
 
-  // Notifications
-  const addNotification = (notification) => {
-    const newNotification = {
-      ...notification,
-      id: `notif${Date.now()}`,
-      timestamp: new Date().toISOString(),
-      recipientCount: notification.recipientCount ?? members.length,
-      triggeredBy: notification.triggeredBy ?? "Admin",
-    };
-    setNotifications((prev) => [newNotification, ...prev]);
-    return newNotification;
+  const updateNotificationPrefs = (memberId, category, channel, value) => {
+    const applyPrefs = (m) => ({
+      ...m,
+      notificationPrefs: {
+        ...m.notificationPrefs,
+        [category]: { ...(m.notificationPrefs?.[category] ?? {}), [channel]: value },
+      },
+    });
+    setMembers((prev) => prev.map((m) => m.id === memberId ? applyPrefs(m) : m));
+    if (currentMember?.id === memberId) setCurrentMember((prev) => applyPrefs(prev));
   };
-  const dismissNotification = (id) => setNotifications((prev) => prev.filter((n) => n.id !== id));
-  const clearNotifications = () => setNotifications([]);
 
   // Half-day slot blocking: { date: ["morning"] | ["afternoon"] | ["morning","afternoon"] }
   // A date is "fully blocked" when both morning+afternoon are taken (or a fullday booking exists)
@@ -131,6 +171,8 @@ export function DemoProvider({ children }) {
       updateMemberPosition,
       rsvps, toggleRsvp,
       notifications, addNotification, dismissNotification, clearNotifications,
+      updateNotificationPrefs,
+      adminNotificationPrefs, updateAdminNotificationPrefs,
     }}>
       {children}
     </DemoContext.Provider>

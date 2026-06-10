@@ -11,6 +11,7 @@ import { format } from "date-fns";
 import { enUS as enUSLocale, mk as mkLocale } from "date-fns/locale";
 import MacoCalendar from "../components/ui/MacoCalendar";
 import NotificationsBell from "../components/ui/NotificationsBell";
+import NotificationPrefs from "../components/ui/NotificationPrefs";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -686,6 +687,21 @@ function ConstitutionSection() {
   );
 }
 
+// ─── Notifications ────────────────────────────────────────────────────────────
+function NotificationsSection({ member, updateNotificationPrefs }) {
+  const { t } = useLang();
+  return (
+    <SectionCard title={t("notifications.pageTitle")}>
+      <NotificationPrefs
+        categories={[{ key: "events" }, { key: "noticeboard" }]}
+        prefs={member.notificationPrefs}
+        onToggle={(cat, channel, val) => updateNotificationPrefs(member.id, cat, channel, val)}
+        contactInfo={{ email: member.email, phone: member.phone }}
+      />
+    </SectionCard>
+  );
+}
+
 // ─── Nav ──────────────────────────────────────────────────────────────────────
 const NAV_ITEMS = [
   { key: "overview", icon: <HomeIcon/>, label: "Dashboard" },
@@ -696,12 +712,13 @@ const NAV_ITEMS = [
   { key: "hallhire", icon: <BuildingIcon/>, label: "Hall Hire" },
   { key: "help", icon: <HelpIcon/>, label: "Help" },
   { key: "constitution", icon: <DocumentIcon/>, label: "Constitution" },
+  { key: "notifications", icon: <BellIcon/>, label: "Notifications" },
 ];
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function MemberDashboard() {
   const navigate = useNavigate();
-  const { currentMember, updateMember, events, notices, rsvps, toggleRsvp, setRole, notifications, dismissNotification, clearNotifications, members } = useDemo();
+  const { currentMember, updateMember, events, notices, rsvps, toggleRsvp, setRole, notifications, dismissNotification, clearNotifications, members, updateNotificationPrefs } = useDemo();
   const [section, setSection] = useState("overview");
   const { lang, setLang } = useLang();
 
@@ -741,7 +758,7 @@ export default function MemberDashboard() {
             <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 11, userSelect: "none" }}>·</span>
             <button onClick={() => setLang("mk")} style={{ background: "none", border: "none", borderRadius: 0, cursor: "pointer", fontFamily: body, fontSize: 12, fontWeight: lang === "mk" ? 700 : 500, color: lang === "mk" ? C.goldBright : "rgba(255,255,255,0.4)", padding: "4px 8px" }}>MK</button>
           </div>
-          <NotificationsBell notifications={visibleNotifications} onDismiss={dismissNotification} onClearAll={clearNotifications}/>
+          <NotificationsBell notifications={visibleNotifications} onDismiss={dismissNotification} onClearAll={clearNotifications} prefs={currentMember?.notificationPrefs}/>
           <div style={{ width: 30, height: 30, borderRadius: "50%", background: C.goldBright, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: C.maroonDeep, fontFamily: body }}>
             {initials}
           </div>
@@ -780,6 +797,7 @@ export default function MemberDashboard() {
           {section === "hallhire" && <HallHireSection/>}
           {section === "help" && <HelpSection members={members}/>}
           {section === "constitution" && <ConstitutionSection/>}
+          {section === "notifications" && <NotificationsSection member={member} updateNotificationPrefs={updateNotificationPrefs}/>}
         </div>
       </div>
     </div>

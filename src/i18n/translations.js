@@ -228,6 +228,18 @@ export const translations = {
       downloadButton:     "Download PDF",
       downloadComingSoon: "Available once the document is finalised",
     },
+    notifications: {
+      tabLabel:    "Notifications",
+      pageTitle:   "Notification Preferences",
+      events:      "Events",
+      noticeboard: "Noticeboard",
+      email:       "Email",
+      sms:         "SMS",
+      contactHint: "Update your details in Profile",
+      hallHire:    "Hall hire enquiries",
+      signups:     "New member sign-ups",
+      payments:    "Memberships & payments",
+    },
   },
 
   mk: {

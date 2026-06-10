@@ -38,6 +38,7 @@ export const INITIAL_MEMBERS = [
     status: "active", paymentMethod: "Stripe", billingCycle: "yearly",
     tier: "general",
     adminPosition: "Secretary",
+    notificationPrefs: { events: { email: true, sms: false }, noticeboard: { email: true, sms: false } },
   },
   {
     id: "m2",
@@ -50,6 +51,7 @@ export const INITIAL_MEMBERS = [
     joinDate: "2025-01-05", renewalDate: "2026-01-05",
     status: "active", paymentMethod: "Stripe", billingCycle: "monthly",
     tier: "general",
+    notificationPrefs: { events: { email: true, sms: false }, noticeboard: { email: true, sms: false } },
   },
   {
     id: "m3",
@@ -62,6 +64,7 @@ export const INITIAL_MEMBERS = [
     status: "active", paymentMethod: "Bank Transfer", billingCycle: "yearly",
     tier: "financial",
     adminPosition: "Vice President",
+    notificationPrefs: { events: { email: true, sms: false }, noticeboard: { email: true, sms: false } },
   },
   {
     id: "m4",
@@ -74,6 +77,7 @@ export const INITIAL_MEMBERS = [
     status: "active", paymentMethod: "Stripe", billingCycle: "monthly",
     tier: "general",
     adminPosition: "Committee Member",
+    notificationPrefs: { events: { email: true, sms: false }, noticeboard: { email: true, sms: false } },
   },
   {
     id: "m5",
@@ -91,6 +95,7 @@ export const INITIAL_MEMBERS = [
     joinDate: "2023-11-30", renewalDate: "2026-11-30",
     status: "active", paymentMethod: "Cash", billingCycle: "yearly",
     tier: "general",
+    notificationPrefs: { events: { email: true, sms: false }, noticeboard: { email: true, sms: false } },
   },
   {
     id: "m6",
@@ -106,6 +111,7 @@ export const INITIAL_MEMBERS = [
     joinDate: "2024-02-14", renewalDate: "2026-02-14",
     status: "active", paymentMethod: "Stripe", billingCycle: "yearly",
     tier: "general",
+    notificationPrefs: { events: { email: true, sms: false }, noticeboard: { email: true, sms: false } },
   },
   {
     id: "m7",
@@ -117,6 +123,7 @@ export const INITIAL_MEMBERS = [
     joinDate: "2025-09-01", renewalDate: "2026-09-01",
     status: "active", paymentMethod: "Stripe", billingCycle: "monthly",
     tier: "general",
+    notificationPrefs: { events: { email: true, sms: false }, noticeboard: { email: true, sms: false } },
   },
   {
     id: "m8",
@@ -129,6 +136,7 @@ export const INITIAL_MEMBERS = [
     joinDate: "2021-07-10", renewalDate: "2025-07-10",
     status: "expired", paymentMethod: "Bank Transfer", billingCycle: "yearly",
     tier: "general",
+    notificationPrefs: { events: { email: true, sms: false }, noticeboard: { email: true, sms: false } },
   },
   {
     id: "m9",
@@ -145,6 +153,7 @@ export const INITIAL_MEMBERS = [
     joinDate: "2024-05-22", renewalDate: "2026-05-22",
     status: "active", paymentMethod: "Stripe", billingCycle: "yearly",
     tier: "general",
+    notificationPrefs: { events: { email: true, sms: false }, noticeboard: { email: true, sms: false } },
   },
   {
     id: "m10",
@@ -156,6 +165,7 @@ export const INITIAL_MEMBERS = [
     joinDate: "2025-03-15", renewalDate: "2026-03-15",
     status: "active", paymentMethod: "Stripe", billingCycle: "monthly",
     tier: "general",
+    notificationPrefs: { events: { email: true, sms: false }, noticeboard: { email: true, sms: false } },
   },
   {
     id: "m11",
@@ -170,6 +180,7 @@ export const INITIAL_MEMBERS = [
     tier: "foundational",
     adminPosition: "President",
     isSuperAdmin: true,
+    notificationPrefs: { events: { email: true, sms: false }, noticeboard: { email: true, sms: false } },
   },
   {
     id: "m12",
@@ -188,6 +199,7 @@ export const INITIAL_MEMBERS = [
     joinDate: "2023-04-08", renewalDate: "2026-04-08",
     status: "active", paymentMethod: "Bank Transfer", billingCycle: "yearly",
     tier: "general",
+    notificationPrefs: { events: { email: true, sms: false }, noticeboard: { email: true, sms: false } },
   },
   {
     id: "m13",
@@ -199,6 +211,7 @@ export const INITIAL_MEMBERS = [
     joinDate: "2025-10-20", renewalDate: "2026-10-20",
     status: "active", paymentMethod: "Stripe", billingCycle: "monthly",
     tier: "general",
+    notificationPrefs: { events: { email: true, sms: false }, noticeboard: { email: true, sms: false } },
   },
   {
     id: "m14",
@@ -215,6 +228,7 @@ export const INITIAL_MEMBERS = [
     status: "active", paymentMethod: "Stripe", billingCycle: "yearly",
     tier: "financial",
     adminPosition: "Treasurer",
+    notificationPrefs: { events: { email: true, sms: false }, noticeboard: { email: true, sms: false } },
   },
   {
     id: "m15",
@@ -232,6 +246,7 @@ export const INITIAL_MEMBERS = [
     joinDate: "2024-01-15", renewalDate: "2026-01-15",
     status: "active", paymentMethod: "Stripe", billingCycle: "yearly",
     tier: "general",
+    notificationPrefs: { events: { email: true, sms: false }, noticeboard: { email: true, sms: false } },
   },
 ];
 
@@ -491,6 +506,36 @@ export const DEMO_MEMBER = {
   status: "active",
   billingCycle: "yearly",
   tier: "financial",
+  notificationPrefs: { events: { email: true, sms: false }, noticeboard: { email: true, sms: false } },
 };
 
 export const DEMO_ADMIN = INITIAL_MEMBERS.find(m => m.id === "m11");
+
+export const INITIAL_ADMIN_NOTIFICATION_PREFS = {
+  hallHire: { email: true, sms: true },
+  signups:  { email: true, sms: false },
+  payments: { email: true, sms: false },
+};
+
+export const INITIAL_NOTIFICATIONS = [
+  {
+    id: "notif_seed_1",
+    type: "admin_signup",
+    category: "signups",
+    audience: "admin",
+    title: "New member signed up",
+    message: "Nikola Spasovski joined as a new Individual member.",
+    timestamp: "2026-06-08T09:22:00.000Z",
+    triggeredBy: "System",
+  },
+  {
+    id: "notif_seed_2",
+    type: "admin_payment",
+    category: "payments",
+    audience: "admin",
+    title: "Payment overdue",
+    message: "Stojan Dimitrov's membership payment is overdue.",
+    timestamp: "2026-06-07T14:15:00.000Z",
+    triggeredBy: "System",
+  },
+];

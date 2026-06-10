@@ -12,10 +12,33 @@ function formatRelativeTime(isoString) {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
-export default function NotificationsBell({ notifications = [], onDismiss, onClearAll }) {
+export default function NotificationsBell({ notifications = [], onDismiss, onClearAll, prefs, adminPrefs }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
-  const count = notifications.length;
+  const filtered = (() => {
+    let result = notifications;
+    if (prefs) {
+      // Member bell: strip admin-audience entirely, then apply member prefs
+      result = result.filter((n) => (n.audience ?? "community") !== "admin");
+      result = result.filter((n) => {
+        if (!n.category) return true;
+        const p = prefs[n.category];
+        if (!p) return true;
+        return p.email || p.sms;
+      });
+    } else if (adminPrefs) {
+      // Admin bell: community always shown; admin-audience filtered by adminPrefs
+      result = result.filter((n) => {
+        if ((n.audience ?? "community") !== "admin") return true;
+        if (!n.category) return true;
+        const p = adminPrefs[n.category];
+        if (!p) return true;
+        return p.email || p.sms;
+      });
+    }
+    return result;
+  })();
+  const count = filtered.length;
   const displayCount = count > 9 ? "9+" : count > 0 ? String(count) : null;
 
   useEffect(() => {
@@ -95,7 +118,7 @@ export default function NotificationsBell({ notifications = [], onDismiss, onCle
                 No notifications
               </div>
             ) : (
-              notifications.map((n) => (
+              filtered.map((n) => (
                 <div key={n.id} style={{
                   display: "flex", alignItems: "flex-start", gap: 12,
                   padding: "12px 16px", borderBottom: `1px solid ${C.border}`,

@@ -13,6 +13,7 @@ import { enUS as enUSLocale, mk as mkLocale } from "date-fns/locale";
 import { useLang } from "../context/LangContext";
 import MacoCalendar from "../components/ui/MacoCalendar";
 import NotificationsBell from "../components/ui/NotificationsBell";
+import NotificationPrefs from "../components/ui/NotificationPrefs";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -1318,17 +1319,37 @@ function SuperAdminTab({ members, updateMemberPosition }) {
   );
 }
 
+// ─── Admin Notifications Tab ──────────────────────────────────────────────────
+
+function AdminNotificationsTab({ adminNotificationPrefs, updateAdminNotificationPrefs }) {
+  const { t } = useLang();
+  return (
+    <div>
+      <h2 style={{ fontFamily: display, fontSize: 20, color: C.textDark, margin: "0 0 20px", letterSpacing: 0.5 }}>
+        {t("notifications.pageTitle")}
+      </h2>
+      <div style={{ background: C.white, border: `1px solid ${C.border}`, padding: 24, maxWidth: 480 }}>
+        <NotificationPrefs
+          categories={[{ key: "hallHire" }, { key: "signups" }, { key: "payments" }]}
+          prefs={adminNotificationPrefs}
+          onToggle={(cat, channel, val) => updateAdminNotificationPrefs(cat, channel, val)}
+        />
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Admin Dashboard ─────────────────────────────────────────────────────
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  const { members, addMember, updateMember, events, addEvent, updateEvent, deleteEvent, notices, addNotice, updateNotice, deleteNotice, togglePinNotice, hallHireBookings, addHallHireBooking, updateBookingStatus, blockedDates, blockedSlots, setRole, addNotification, notifications, dismissNotification, clearNotifications, currentAdmin, updateMemberPosition } = useDemo();
+  const { members, addMember, updateMember, events, addEvent, updateEvent, deleteEvent, notices, addNotice, updateNotice, deleteNotice, togglePinNotice, hallHireBookings, addHallHireBooking, updateBookingStatus, blockedDates, blockedSlots, setRole, addNotification, notifications, dismissNotification, clearNotifications, currentAdmin, updateMemberPosition, adminNotificationPrefs, updateAdminNotificationPrefs } = useDemo();
   const [tab, setTab] = useState("Analytics");
   const { lang, setLang, t } = useLang();
   const [toast, setToast] = useState(null);
   const showToast = (message) => setToast({ message });
 
-  const tabs = ["Analytics", "Members", "Events", "Notice Board", "Hall Hire"];
+  const tabs = ["Analytics", "Members", "Events", "Notice Board", "Hall Hire", "Notifications"];
   if (currentAdmin?.isSuperAdmin) tabs.push("Super Admin");
 
   useEffect(() => {
@@ -1356,7 +1377,7 @@ export default function AdminDashboard() {
             <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 11, userSelect: "none" }}>·</span>
             <button onClick={() => setLang("mk")} style={{ background: "none", border: "none", borderRadius: 0, cursor: "pointer", fontFamily: body, fontSize: 12, fontWeight: lang === "mk" ? 700 : 500, color: lang === "mk" ? C.goldBright : "rgba(255,255,255,0.4)", padding: "4px 8px" }}>MK</button>
           </div>
-          <NotificationsBell notifications={notifications} onDismiss={dismissNotification} onClearAll={clearNotifications}/>
+          <NotificationsBell notifications={notifications} onDismiss={dismissNotification} onClearAll={clearNotifications} adminPrefs={adminNotificationPrefs}/>
           <button onClick={handleSignOut} title="Sign out" style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", padding: 4 }}>
             <LogOutIcon/>
           </button>
@@ -1372,7 +1393,7 @@ export default function AdminDashboard() {
             borderBottom: tab === tabKey ? `2px solid ${C.maroon}` : "2px solid transparent",
             marginBottom: -1,
           }}>
-            {tabKey === "Super Admin" ? t("superAdmin.tabLabel") : tabKey}
+            {tabKey === "Super Admin" ? t("superAdmin.tabLabel") : tabKey === "Notifications" ? t("notifications.tabLabel") : tabKey}
           </button>
         ))}
       </div>
@@ -1384,6 +1405,7 @@ export default function AdminDashboard() {
         {tab === "Notice Board" && <NoticeBoardTab notices={notices} addNotice={addNotice} updateNotice={updateNotice} deleteNotice={deleteNotice} togglePinNotice={togglePinNotice} showToast={showToast}/>}
         {tab === "Hall Hire" && <HallHireTab hallHireBookings={hallHireBookings} updateBookingStatus={updateBookingStatus} blockedDates={blockedDates} blockedSlots={blockedSlots} addHallHireBooking={addHallHireBooking}/>}
         {tab === "Super Admin" && <SuperAdminTab members={members} updateMemberPosition={updateMemberPosition}/>}
+        {tab === "Notifications" && <AdminNotificationsTab adminNotificationPrefs={adminNotificationPrefs} updateAdminNotificationPrefs={updateAdminNotificationPrefs}/>}
       </div>
 
       <Toast message={toast?.message} visible={!!toast} onDismiss={() => setToast(null)}/>
