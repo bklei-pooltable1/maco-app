@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from "react";
+import { TIERS } from "../lib/tiers";
 import {
   INITIAL_MEMBERS,
   INITIAL_EVENTS,
@@ -65,12 +66,38 @@ export function DemoProvider({ children }) {
     return newMember;
   };
   const updateMember = (id, updates) => {
+    if (updates.tier !== undefined) {
+      const current = members.find(m => m.id === id);
+      if (current && updates.tier !== current.tier) {
+        addNotification({
+          audience: "community",
+          category: "account",
+          recipientId: id,
+          title: "Membership tier updated",
+          message: `Your membership tier has been updated to ${TIERS[updates.tier]?.label ?? updates.tier}.`,
+        });
+      }
+    }
     setMembers((prev) => prev.map((m) => (m.id === id ? { ...m, ...updates } : m)));
     if (currentMember?.id === id) setCurrentMember((prev) => ({ ...prev, ...updates }));
   };
   const deleteMember = (id) => setMembers((prev) => prev.filter((m) => m.id !== id));
   const updateMemberPosition = (memberId, { adminPosition, isSuperAdmin: isSA }) => {
     const updates = { adminPosition: adminPosition ?? null, isSuperAdmin: isSA ?? false };
+    const current = members.find(m => m.id === memberId);
+    const currentPosition = current?.adminPosition ?? null;
+    const newPosition = updates.adminPosition;
+    if (currentPosition !== newPosition) {
+      addNotification({
+        audience: "community",
+        category: "account",
+        recipientId: memberId,
+        title: "Committee position updated",
+        message: newPosition
+          ? `Your committee position has been updated to ${newPosition}.`
+          : "Your committee position has been removed.",
+      });
+    }
     updateMember(memberId, updates);
     if (currentAdmin?.id === memberId) setCurrentAdmin(prev => ({ ...prev, ...updates }));
   };

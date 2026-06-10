@@ -786,7 +786,7 @@ export default function MemberDashboard() {
             <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 11, userSelect: "none" }}>·</span>
             <button onClick={() => setLang("mk")} style={{ background: "none", border: "none", borderRadius: 0, cursor: "pointer", fontFamily: body, fontSize: 12, fontWeight: lang === "mk" ? 700 : 500, color: lang === "mk" ? C.goldBright : "rgba(255,255,255,0.4)", padding: "4px 8px" }}>MK</button>
           </div>
-          <NotificationsBell notifications={visibleNotifications} onDismiss={dismissNotification} onClearAll={clearNotifications} prefs={currentMember?.notificationPrefs}/>
+          <NotificationsBell notifications={visibleNotifications} onDismiss={dismissNotification} onClearAll={clearNotifications} prefs={currentMember?.notificationPrefs} memberId={currentMember?.id}/>
           <div style={{ width: 30, height: 30, borderRadius: "50%", background: C.goldBright, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: C.maroonDeep, fontFamily: body }}>
             {initials}
           </div>

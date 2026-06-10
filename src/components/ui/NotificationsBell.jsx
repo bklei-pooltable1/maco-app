@@ -12,7 +12,7 @@ function formatRelativeTime(isoString) {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
-export default function NotificationsBell({ notifications = [], onDismiss, onClearAll, prefs, adminPrefs }) {
+export default function NotificationsBell({ notifications = [], onDismiss, onClearAll, prefs, adminPrefs, memberId }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   const filtered = (() => {
@@ -20,6 +20,8 @@ export default function NotificationsBell({ notifications = [], onDismiss, onCle
     if (prefs) {
       // Member bell: strip admin-audience entirely, then apply member prefs
       result = result.filter((n) => (n.audience ?? "community") !== "admin");
+      // Only show community-wide or notifications targeted to this member
+      result = result.filter((n) => !n.recipientId || n.recipientId === memberId);
       result = result.filter((n) => {
         if (!n.category) return true;
         const p = prefs[n.category];
@@ -29,6 +31,7 @@ export default function NotificationsBell({ notifications = [], onDismiss, onCle
     } else if (adminPrefs) {
       // Admin bell: community always shown; admin-audience filtered by adminPrefs
       result = result.filter((n) => {
+        if (n.recipientId) return false; // personal notifications are not for the admin bell
         if ((n.audience ?? "community") !== "admin") return true;
         if (!n.category) return true;
         const p = adminPrefs[n.category];
