@@ -188,10 +188,6 @@ html, body {
   .welcome-banner-avatar {
     display: none !important;
   }
-  .stats-grid-3 {
-    grid-template-columns: 1fr 1fr !important;
-    gap: 10px !important;
-  }
   .calendar-layout {
     grid-template-columns: 1fr !important;
   }

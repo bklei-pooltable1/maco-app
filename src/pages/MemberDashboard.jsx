@@ -54,9 +54,12 @@ function SectionCard({ title, children, action }) {
 }
 
 // ─── Overview ─────────────────────────────────────────────────────────────────
-function OverviewSection({ member, events, rsvps, setSection }) {
+function OverviewSection({ member, events, setSection, notices }) {
+  const { t } = useLang();
   const upcomingEvents = events.filter(e => e.date >= new Date().toISOString().split("T")[0]).slice(0, 3);
-  const myRsvps = events.filter(e => rsvps[e.id]);
+  const recentNotices = [...notices]
+    .sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || b.postedAt.localeCompare(a.postedAt))
+    .slice(0, 3);
 
   return (
     <div>
@@ -79,20 +82,6 @@ function OverviewSection({ member, events, rsvps, setSection }) {
         </div>
       </div>
 
-      {/* Quick stats */}
-      <div className="stats-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 24 }}>
-        {[
-          { label: "My RSVPs", value: myRsvps.length, color: C.maroon },
-          { label: "Family Members", value: member.familySize, color: C.green },
-          { label: "Days Until Renewal", value: Math.max(0, Math.round((new Date(member.renewalDate) - new Date()) / (1000 * 60 * 60 * 24))), color: "#1a7fbf" },
-        ].map(({ label, value, color }) => (
-          <div key={label} style={{ background: C.white, border: `1px solid ${C.border}`, padding: "20px 24px", textAlign: "center" }}>
-            <div style={{ fontFamily: display, fontSize: 32, color, marginBottom: 6 }}>{value}</div>
-            <div style={{ fontSize: 12, color: C.textLight, fontFamily: body, fontWeight: 500 }}>{label}</div>
-          </div>
-        ))}
-      </div>
-
       {/* Upcoming events */}
       <SectionCard title="Upcoming Events" action={<button onClick={() => setSection("calendar")} style={{ fontSize: 12, color: C.maroon, background: "none", border: "none", cursor: "pointer", fontFamily: body, fontWeight: 600 }}>View all →</button>}>
         {upcomingEvents.length === 0 && <p style={{ color: C.textLight, fontSize: 13, fontFamily: body }}>No upcoming events.</p>}
@@ -108,6 +97,24 @@ function OverviewSection({ member, events, rsvps, setSection }) {
               <div style={{ fontSize: 12, color: C.textLight, fontFamily: body, marginTop: 3 }}>{e.time} · {e.location?.split(",")[0]}</div>
               <div style={{ marginTop: 8 }}><Badge>{e.category}</Badge></div>
             </div>
+          </div>
+        ))}
+      </SectionCard>
+
+      {/* Notice Board preview */}
+      <SectionCard title={t("dashboard.noticesPreviewTitle")} action={<button onClick={() => setSection("notices")} style={{ fontSize: 12, color: C.maroon, background: "none", border: "none", cursor: "pointer", fontFamily: body, fontWeight: 600 }}>{t("dashboard.viewAll")}</button>}>
+        {recentNotices.length === 0 && <p style={{ color: C.textLight, fontSize: 13, fontFamily: body }}>{t("dashboard.noNotices")}</p>}
+        {recentNotices.map(n => (
+          <div key={n.id} style={{ borderBottom: `1px solid ${C.border}`, paddingBottom: 20, marginBottom: 20, borderLeft: n.pinned ? `3px solid ${C.maroon}` : "none", paddingLeft: n.pinned ? 16 : 0 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+              <div>
+                {n.pinned && <div style={{ fontSize: 10, fontWeight: 700, color: C.maroon, fontFamily: body, letterSpacing: 1, marginBottom: 4, textTransform: "uppercase" }}>📌 Pinned</div>}
+                <div style={{ fontSize: 16, fontWeight: 600, color: C.textDark, fontFamily: body }}>{n.title}</div>
+              </div>
+              <span style={{ fontSize: 12, color: C.textLight, fontFamily: body, whiteSpace: "nowrap", marginLeft: 12 }}>{n.postedAt}</span>
+            </div>
+            <p style={{ fontSize: 13, color: C.textMid, lineHeight: 1.7, fontFamily: body, marginBottom: 8 }}>{n.body}</p>
+            <span style={{ fontSize: 12, color: C.textLight, fontFamily: body }}>Posted by {n.author}</span>
           </div>
         ))}
       </SectionCard>
@@ -789,7 +796,7 @@ export default function MemberDashboard() {
 
         {/* Content */}
         <div className="member-dashboard-content" style={{ flex: 1, padding: 28, maxWidth: 900 }}>
-          {section === "overview" && <OverviewSection member={member} events={visibleEvents} rsvps={rsvps} setSection={setSection}/>}
+          {section === "overview" && <OverviewSection member={member} events={visibleEvents} setSection={setSection} notices={notices}/>}
           {section === "profile" && <ProfileSection member={member} updateMember={updateMember}/>}
           {section === "membership" && <MembershipSection member={member} updateMember={updateMember}/>}
           {section === "calendar" && <CalendarSection events={visibleEvents} rsvps={rsvps} toggleRsvp={toggleRsvp}/>}

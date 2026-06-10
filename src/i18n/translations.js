@@ -249,6 +249,11 @@ export const translations = {
       ageBand13to17:   "13–17",
       privacyNotice:   "We only collect the information needed to understand our community membership. For family members under 18 we collect a first name and age range only. By signing up, you confirm you're authorised to provide these details on behalf of your family.",
     },
+    dashboard: {
+      noticesPreviewTitle: "Notice Board",
+      viewAll:             "View all →",
+      noNotices:           "No notices.",
+    },
   },
 
   mk: {
