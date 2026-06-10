@@ -240,6 +240,15 @@ export const translations = {
       signups:     "New member sign-ups",
       payments:    "Memberships & payments",
     },
+    signup: {
+      memberTypeAdult: "Adult",
+      memberTypeChild: "Child",
+      ageBand:         "Age range",
+      ageBandUnder5:   "Under 5",
+      ageBand5to12:    "5–12",
+      ageBand13to17:   "13–17",
+      privacyNotice:   "We only collect the information needed to understand our community membership. For family members under 18 we collect a first name and age range only. By signing up, you confirm you're authorised to provide these details on behalf of your family.",
+    },
   },
 
   mk: {

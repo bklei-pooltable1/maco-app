@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { C, body, display } from "../theme";
 import { SunIcon, CheckIcon } from "../components/ui/Icons";
 import { useDemo } from "../context/DemoContext";
+import { useLang } from "../context/LangContext";
 import { getPricing } from "../data/mockData";
 
 const STEPS = ["Account", "Family", "Plan", "Payment", "Done"];
@@ -113,10 +114,16 @@ function Step1({ data, onChange, onNext }) {
 
 // ─── Step 2: Family Details ───────────────────────────────────────────────────
 function Step2({ data, onChange, onNext, onBack }) {
-  const addMember = () => onChange("familyMembers", [...data.familyMembers, { name: "", age: "" }]);
+  const { t } = useLang();
+  const addMember = () => onChange("familyMembers", [...data.familyMembers, { name: "", dateOfBirth: "", type: "adult", ageBand: "" }]);
   const removeMember = (i) => onChange("familyMembers", data.familyMembers.filter((_, idx) => idx !== i));
   const updateFamilyMember = (i, field, val) => {
     const updated = data.familyMembers.map((m, idx) => idx === i ? { ...m, [field]: val } : m);
+    onChange("familyMembers", updated);
+  };
+  const setMemberType = (i, type) => {
+    const reset = type === "child" ? { type: "child", dateOfBirth: "" } : { type: "adult", ageBand: "" };
+    const updated = data.familyMembers.map((m, idx) => idx === i ? { ...m, ...reset } : m);
     onChange("familyMembers", updated);
   };
   const totalSize = 1 + data.familyMembers.length;
@@ -148,13 +155,65 @@ function Step2({ data, onChange, onNext, onBack }) {
           </div>
         )}
 
-        {data.familyMembers.map((fm, i) => (
-          <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 160px 32px", gap: 10, marginBottom: 10, alignItems: "center" }}>
-            <input style={inputStyle} value={fm.name} onChange={e => updateFamilyMember(i, "name", e.target.value)} placeholder={`Member ${i + 2} full name`}/>
-            <input style={inputStyle} type="date" value={fm.dateOfBirth || ""} onChange={e => updateFamilyMember(i, "dateOfBirth", e.target.value)} title="Date of Birth"/>
-            <button onClick={() => removeMember(i)} style={{ padding: "10px", background: "rgba(192,57,43,0.08)", border: "none", borderRadius: 0, cursor: "pointer", color: C.red, fontSize: 16, fontWeight: 700 }}>×</button>
-          </div>
-        ))}
+        {data.familyMembers.map((fm, i) => {
+          const memberType = fm.type || "adult";
+          return (
+            <div key={i} style={{ border: `1px solid ${C.border}`, padding: "10px 12px", marginBottom: 10, background: C.white }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <div style={{ display: "flex", border: `1px solid ${C.border}`, overflow: "hidden" }}>
+                  {["adult", "child"].map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => setMemberType(i, type)}
+                      style={{
+                        padding: "5px 14px", border: "none", borderRadius: 0, cursor: "pointer",
+                        fontFamily: body, fontWeight: 600, fontSize: 11, letterSpacing: 0.5,
+                        background: memberType === type ? C.maroon : C.white,
+                        color: memberType === type ? C.white : C.textMid,
+                      }}
+                    >
+                      {type === "adult" ? t("signup.memberTypeAdult") : t("signup.memberTypeChild")}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeMember(i)}
+                  style={{ padding: "5px 10px", background: "rgba(192,57,43,0.08)", border: "none", borderRadius: 0, cursor: "pointer", color: C.red, fontSize: 16, fontWeight: 700 }}
+                >×</button>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 160px", gap: 10 }}>
+                <input
+                  style={inputStyle}
+                  value={fm.name}
+                  onChange={e => updateFamilyMember(i, "name", e.target.value)}
+                  placeholder={memberType === "child" ? "Child's first name" : `Member ${i + 2} full name`}
+                />
+                {memberType === "adult" ? (
+                  <input
+                    style={inputStyle}
+                    type="date"
+                    value={fm.dateOfBirth || ""}
+                    onChange={e => updateFamilyMember(i, "dateOfBirth", e.target.value)}
+                    title="Date of Birth"
+                  />
+                ) : (
+                  <select
+                    style={inputStyle}
+                    value={fm.ageBand || ""}
+                    onChange={e => updateFamilyMember(i, "ageBand", e.target.value)}
+                  >
+                    <option value="">{t("signup.ageBand")}</option>
+                    <option value="Under 5">{t("signup.ageBandUnder5")}</option>
+                    <option value="5–12">{t("signup.ageBand5to12")}</option>
+                    <option value="13–17">{t("signup.ageBand13to17")}</option>
+                  </select>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       <div style={{ padding: "12px 16px", background: C.goldMuted, border: `1px solid ${C.gold}`, fontFamily: body }}>
@@ -162,6 +221,10 @@ function Step2({ data, onChange, onNext, onBack }) {
         <span style={{ fontSize: 13, color: C.textMid }}>{totalSize} {totalSize === 1 ? "person" : "people"}</span>
         <span style={{ fontSize: 12, color: C.textLight, marginLeft: 12 }}>({totalSize === 1 ? "Individual" : totalSize === 2 ? "Couple" : `Family`} plan)</span>
       </div>
+
+      <p style={{ fontSize: 12, color: C.textMid, fontFamily: body, lineHeight: 1.6, marginTop: 16, marginBottom: 0 }}>
+        {t("signup.privacyNotice")}
+      </p>
 
       <div className="signup-step-nav" style={{ display: "flex", justifyContent: "space-between", marginTop: 28 }}>
         <button onClick={onBack} style={{ padding: "12px 28px", background: "transparent", border: `1px solid ${C.border}`, borderRadius: 0, fontWeight: 600, fontSize: 13, cursor: "pointer", fontFamily: body, color: C.textMid }}>
@@ -424,7 +487,11 @@ export default function SignUp() {
       dateOfBirth: data.dateOfBirth,
       suburb: data.suburb,
       familySize,
-      familyMembers: data.familyMembers,
+      familyMembers: data.familyMembers.map((fm) =>
+        (fm.type || "adult") === "child"
+          ? { name: fm.name, type: "child", ageBand: fm.ageBand }
+          : fm
+      ),
       planType: pricing.label,
       yearlyPrice: pricing.yearlyPrice,
       monthlyPrice: pricing.monthlyPrice,
