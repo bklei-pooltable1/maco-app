@@ -180,6 +180,13 @@ export function DemoProvider({ children }) {
       }
     });
 
+  // Events held in the hall block the full day from hire
+  events
+    .filter((e) => e.inHall && e.date)
+    .forEach((e) => {
+      blockedSlots[e.date] = ["morning", "afternoon"];
+    });
+
   // Fully blocked = both slots taken
   const blockedDates = Object.keys(blockedSlots).filter(
     (d) => blockedSlots[d].includes("morning") && blockedSlots[d].includes("afternoon")

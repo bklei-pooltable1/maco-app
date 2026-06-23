@@ -739,9 +739,11 @@ export default function MemberDashboard() {
 
   const member = currentMember;
   const memberTier = currentMember?.tier ?? "general";
-  const visibleEvents = events.filter(e =>
-    canSee(memberTier, e.visibility ?? "general")
-  );
+  const visibleEvents = events.filter(e => {
+    const v = e.visibility;
+    if (Array.isArray(v)) return v.includes(memberTier);
+    return canSee(memberTier, v ?? "general");
+  });
   const visibleNotifications = notifications.filter(n =>
     !n.visibility || canSee(memberTier, n.visibility)
   );

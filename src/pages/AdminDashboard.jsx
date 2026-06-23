@@ -19,7 +19,7 @@ import NotificationPrefs from "../components/ui/NotificationPrefs";
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-const EVENT_CATEGORIES = ["Weekly Service", "Cultural Event", "Youth Program", "Social", "Holiday"];
+const EVENT_CATEGORIES = ["Weekly Service", "Cultural Event", "Youth Program", "Social", "Holiday", "Meeting"];
 
 function getCalendarDays(year, month) {
   const firstDay = new Date(year, month, 1).getDay();
@@ -146,7 +146,9 @@ function EventPopover({ event, position, onClose, onEdit, onDelete, onNotify, ca
           fontWeight: 700,
           letterSpacing: 0.5,
           textTransform: "uppercase",
-          color: TIERS[event.visibility ?? "general"].color,
+          color: Array.isArray(event.visibility)
+            ? (event.visibility.length === TIER_KEYS.length ? C.textMid : TIERS[event.visibility[0]]?.color ?? C.textMid)
+            : (TIERS[event.visibility ?? "general"]?.color ?? C.textMid),
           background: C.white,
           fontFamily: body,
           borderRadius: 0,
@@ -154,7 +156,9 @@ function EventPopover({ event, position, onClose, onEdit, onDelete, onNotify, ca
           alignSelf: "flex-start",
           marginRight: 4,
         }}>
-          {TIERS[event.visibility ?? "general"].label}
+          {Array.isArray(event.visibility)
+            ? (event.visibility.length === TIER_KEYS.length ? "All Members" : event.visibility.map(v => TIERS[v]?.label).join(", "))
+            : (TIERS[event.visibility ?? "general"]?.label ?? "All Members")}
         </span>
         <button
           onClick={onClose}
@@ -225,7 +229,8 @@ function EventPopover({ event, position, onClose, onEdit, onDelete, onNotify, ca
 
 // ─── notifyCommunity ─────────────────────────────────────────────────────────
 
-function notifyCommunity({ type, event, addNotification, members, showToast, t, toastKey = "admin.events.notifyToast" }) {
+// visibilityGroups: string[] of tier keys to target; null = all members
+function notifyCommunity({ type, event, addNotification, members, showToast, t, toastKey = "admin.events.notifyToast", visibilityGroups = null }) {
   const templates = {
     event_created:   `New event added: ${event.title}`,
     event_updated:   `Event updated: ${event.title}`,
@@ -236,13 +241,16 @@ function notifyCommunity({ type, event, addNotification, members, showToast, t, 
     notice_deleted:  `Notice removed: ${event.title}`,
     notice_reminder: `Notice: ${event.title}`,
   };
+  const groups = visibilityGroups && visibilityGroups.length > 0 ? visibilityGroups : null;
+  const count = groups ? members.filter(m => groups.includes(m.tier ?? "general")).length : members.length;
   addNotification({
     type,
     eventId: event.id,
     eventTitle: event.title,
     message: templates[type] ?? `Event: ${event.title}`,
+    recipientCount: count,
   });
-  showToast(t(toastKey).replace("{count}", members.length));
+  showToast(t(toastKey).replace("{count}", count));
 }
 
 // ─── DeleteEventConfirm ───────────────────────────────────────────────────────
@@ -590,7 +598,7 @@ function EventsTab({ events, addEvent, updateEvent, deleteEvent, showToast }) {
   const { t } = useLang();
   const [showForm, setShowForm] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
-  const [form, setForm] = useState({ title: "", date: "", time: "", endTime: "", category: "Weekly Service", description: "", location: "", notify: true, visibility: "general" });
+  const [form, setForm] = useState({ title: "", date: "", time: "", endTime: "", category: "Weekly Service", description: "", location: "", notify: true, visibility: [...TIER_KEYS], inHall: false });
   const [popover, setPopover] = useState(null); // { event, x, y }
   const [deleteTarget, setDeleteTarget] = useState(null);
 
@@ -630,19 +638,24 @@ function EventsTab({ events, addEvent, updateEvent, deleteEvent, showToast }) {
     const evt = { ...form, dateDisplay: `${months[m - 1]} ${d}`, day: days[dateObj.getDay()] };
     if (editingEvent) {
       updateEvent(editingEvent.id, evt);
-      if (form.notify) notifyCommunity({ type: "event_updated", event: { ...evt, id: editingEvent.id }, addNotification, members, showToast, t });
+      if (form.notify) notifyCommunity({ type: "event_updated", event: { ...evt, id: editingEvent.id }, addNotification, members, showToast, t, visibilityGroups: form.visibility });
       setEditingEvent(null);
     } else {
       const newEvt = addEvent(evt);
-      if (form.notify) notifyCommunity({ type: "event_created", event: newEvt, addNotification, members, showToast, t });
+      if (form.notify) notifyCommunity({ type: "event_created", event: newEvt, addNotification, members, showToast, t, visibilityGroups: form.visibility });
     }
     setShowForm(false);
-    setForm({ title: "", date: "", time: "", endTime: "", category: "Weekly Service", description: "", location: "", notify: true, visibility: "general" });
+    setForm({ title: "", date: "", time: "", endTime: "", category: "Weekly Service", description: "", location: "", notify: true, visibility: [...TIER_KEYS], inHall: false });
   };
 
   const startEdit = (e) => {
     setEditingEvent(e);
-    setForm({ title: e.title, date: e.date, time: e.time, endTime: e.endTime || "", category: e.category, description: e.description, location: e.location || "", notify: false, visibility: e.visibility ?? "general" });
+    const rawVis = e.visibility;
+    const visArr = Array.isArray(rawVis) ? rawVis
+      : rawVis === "financial" ? ["financial", "foundational"]
+      : rawVis === "foundational" ? ["foundational"]
+      : [...TIER_KEYS];
+    setForm({ title: e.title, date: e.date, time: e.time, endTime: e.endTime || "", category: e.category, description: e.description, location: e.location || "", notify: false, visibility: visArr, inHall: e.inHall ?? false });
     setShowForm(true);
   };
 
@@ -652,7 +665,7 @@ function EventsTab({ events, addEvent, updateEvent, deleteEvent, showToast }) {
         <div style={{ padding: "16px 24px", borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <h3 style={{ fontFamily: display, fontSize: 16, color: C.textDark, letterSpacing: 0.5, margin: 0 }}>Events Calendar</h3>
           <button
-            onClick={() => { setEditingEvent(null); setForm({ title: "", date: "", time: "", endTime: "", category: "Weekly Service", description: "", location: "", notify: true, visibility: "general" }); setShowForm(true); }}
+            onClick={() => { setEditingEvent(null); setForm({ title: "", date: "", time: "", endTime: "", category: "Weekly Service", description: "", location: "", notify: true, visibility: [...TIER_KEYS], inHall: false }); setShowForm(true); }}
             style={{ padding: "9px 18px", background: C.maroon, color: C.white, border: "none", borderRadius: 0, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: body, display: "flex", alignItems: "center", gap: 6 }}
           >
             <PlusIcon/> Add Event
@@ -729,17 +742,49 @@ function EventsTab({ events, addEvent, updateEvent, deleteEvent, showToast }) {
             </div>
             <div style={{ gridColumn: "1 / -1" }}>
               <label style={labelStyle}>{t("tiers.visibilityLabel")}</label>
-              <select
-                style={inputStyle}
-                value={form.visibility ?? "general"}
-                onChange={e => setForm(p => ({ ...p, visibility: e.target.value }))}
-              >
-                <option value="general">{t("tiers.visibilityGeneral")}</option>
-                <option value="financial">{t("tiers.visibilityFinancial")}</option>
-                <option value="foundational">{t("tiers.visibilityFoundational")}</option>
-              </select>
+              <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 7 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <input
+                    type="checkbox"
+                    id="vis-all"
+                    checked={form.visibility.length === TIER_KEYS.length}
+                    onChange={e => setForm(p => ({ ...p, visibility: e.target.checked ? [...TIER_KEYS] : [] }))}
+                    style={{ width: 15, height: 15, cursor: "pointer", accentColor: C.maroon }}
+                  />
+                  <label htmlFor="vis-all" style={{ fontSize: 13, fontWeight: 700, color: C.textDark, fontFamily: body, cursor: "pointer" }}>Select all</label>
+                </div>
+                {TIER_KEYS.map(key => (
+                  <div key={key} style={{ display: "flex", alignItems: "center", gap: 8, paddingLeft: 4 }}>
+                    <input
+                      type="checkbox"
+                      id={`vis-${key}`}
+                      checked={form.visibility.includes(key)}
+                      onChange={e => setForm(p => ({
+                        ...p,
+                        visibility: e.target.checked ? [...p.visibility, key] : p.visibility.filter(v => v !== key),
+                      }))}
+                      style={{ width: 15, height: 15, cursor: "pointer", accentColor: C.maroon }}
+                    />
+                    <label htmlFor={`vis-${key}`} style={{ fontSize: 13, color: C.textDark, fontFamily: body, cursor: "pointer" }}>
+                      {TIERS[key].label}
+                    </label>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div style={{ gridColumn: "1 / -1", display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
+            <div style={{ gridColumn: "1 / -1", display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
+              <input
+                type="checkbox"
+                id="in-hall-checkbox"
+                checked={form.inHall}
+                onChange={e => setForm(p => ({ ...p, inHall: e.target.checked }))}
+                style={{ width: 16, height: 16, cursor: "pointer", accentColor: C.maroon }}
+              />
+              <label htmlFor="in-hall-checkbox" style={{ fontSize: 13, color: C.textDark, fontFamily: body, cursor: "pointer" }}>
+                Is this event being held in the hall?
+              </label>
+            </div>
+            <div style={{ gridColumn: "1 / -1", display: "flex", alignItems: "center", gap: 8 }}>
               <input
                 type="checkbox"
                 id="notify-checkbox"
@@ -757,7 +802,7 @@ function EventsTab({ events, addEvent, updateEvent, deleteEvent, showToast }) {
               <button
                 onClick={() => {
                   if (window.confirm(t("admin.events.notifyConfirm"))) {
-                    notifyCommunity({ type: "event_updated", event: editingEvent, addNotification, members, showToast, t });
+                    notifyCommunity({ type: "event_updated", event: editingEvent, addNotification, members, showToast, t, visibilityGroups: form.visibility });
                   }
                 }}
                 style={{ padding: "10px 18px", border: `1px solid ${C.gold}`, background: "transparent", borderRadius: 0, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: body, color: C.textDark }}
