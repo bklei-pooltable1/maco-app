@@ -4,27 +4,13 @@ import { C, body, display } from "../theme";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../lib/supabase";
 
-const inputStyle = {
-  width: "100%", padding: "10px 12px", border: `1px solid ${C.border}`,
-  borderRadius: 0, fontSize: 13, fontFamily: body, color: C.textDark,
-  background: C.white, outline: "none", marginTop: 4,
-};
-
 const labelStyle = {
   fontSize: 11, fontWeight: 600, color: C.textMid,
   textTransform: "uppercase", letterSpacing: 0.5, fontFamily: body,
 };
 
 export default function Profile() {
-  const { profile, refreshProfile } = useAuth();
-  const [editing, setEditing] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({
-    full_name: profile?.full_name || "",
-    phone: profile?.phone || "",
-    family_members: profile?.family_members || "",
-  });
-  const [success, setSuccess] = useState("");
+  const { profile } = useAuth();
   const [subscription, setSubscription] = useState(null);
   const [subLoading, setSubLoading] = useState(true);
 
@@ -35,23 +21,6 @@ export default function Profile() {
       setSubLoading(false);
     });
   }, [profile]);
-
-  const handleSave = async (e) => {
-    e.preventDefault();
-    setSaving(true);
-    const { error } = await supabase.from("profiles").update({
-      full_name: form.full_name,
-      phone: form.phone,
-      family_members: form.family_members,
-    }).eq("id", profile.id);
-    setSaving(false);
-    if (!error) {
-      refreshProfile();
-      setEditing(false);
-      setSuccess("Profile updated successfully.");
-      setTimeout(() => setSuccess(""), 3000);
-    }
-  };
 
   const handleSubscribe = async () => {
     const { data, error } = await supabase.functions.invoke("create-checkout-session", {
@@ -73,67 +42,36 @@ export default function Profile() {
     <div>
       <h2 style={{ fontSize: 22, fontWeight: 700, color: C.textDark, margin: "0 0 20px", fontFamily: display, letterSpacing: 1 }}>My Family Profile</h2>
 
-      {success && (
-        <div style={{ background: "rgba(45,138,78,0.1)", border: `1px solid ${C.green}`, color: C.green, padding: "10px 14px", fontSize: 13, fontFamily: body, marginBottom: 16 }}>
-          {success}
-        </div>
-      )}
-
-      {/* Profile card */}
-      <div style={{ background: C.white, borderRadius: 0, border: `1px solid ${C.border}`, padding: 24, marginBottom: 20 }}>
+      {/* Profile card — read-only; contact admin to update details */}
+      <div style={{ background: C.white, borderRadius: 0, border: `1px solid ${C.border}`, padding: 24, marginBottom: 0 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <h3 style={{ fontSize: 17, fontWeight: 600, color: C.textDark, margin: 0, fontFamily: body }}>Family Details</h3>
-          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-            <Badge color={subActive ? "green" : "red"}>{subActive ? "Active Member" : "No Subscription"}</Badge>
-            {!editing && (
-              <button onClick={() => { setEditing(true); setForm({ full_name: profile?.full_name || "", phone: profile?.phone || "", family_members: profile?.family_members || "" }); }} style={{ padding: "6px 14px", background: "transparent", color: C.maroon, border: `1px solid ${C.maroon}`, borderRadius: 0, fontWeight: 600, fontSize: 12, cursor: "pointer", fontFamily: body }}>
-                Edit
-              </button>
-            )}
-          </div>
+          <Badge color={subActive ? "green" : "red"}>{subActive ? "Active Member" : "No Subscription"}</Badge>
         </div>
 
-        {editing ? (
-          <form onSubmit={handleSave}>
-            <div style={{ marginBottom: 14 }}>
-              <label style={labelStyle}>Full Name</label>
-              <input type="text" required style={inputStyle} value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })}/>
-            </div>
-            <div style={{ marginBottom: 14 }}>
-              <label style={labelStyle}>Phone</label>
-              <input type="tel" style={inputStyle} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })}/>
-            </div>
-            <div style={{ marginBottom: 20 }}>
-              <label style={labelStyle}>Family Members</label>
-              <input type="text" style={inputStyle} value={form.family_members} onChange={(e) => setForm({ ...form, family_members: e.target.value })} placeholder="e.g. Name1, Name2 (2 members)"/>
-            </div>
-            <div style={{ display: "flex", gap: 10 }}>
-              <button type="submit" disabled={saving} style={{ padding: "10px 22px", background: C.maroon, color: C.white, border: "none", borderRadius: 0, fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: body, opacity: saving ? 0.7 : 1 }}>
-                {saving ? "Saving…" : "Save Changes"}
-              </button>
-              <button type="button" onClick={() => setEditing(false)} style={{ padding: "10px 22px", background: "transparent", color: C.textMid, border: `1px solid ${C.border}`, borderRadius: 0, fontWeight: 600, fontSize: 13, cursor: "pointer", fontFamily: body }}>
-                Cancel
-              </button>
-            </div>
-          </form>
-        ) : (
-          <>
-            {[
-              ["Primary Contact", profile?.full_name],
-              ["Email", profile?.email],
-              ["Phone", profile?.phone || "—"],
-              ["Family Members", profile?.family_members || "—"],
-              ["Member Since", profile?.created_at ? new Date(profile.created_at).toLocaleDateString("en-AU", { month: "long", year: "numeric" }) : "—"],
-              ["Subscription", subActive ? `$120/year${subExpiry ? ` — renews ${subExpiry}` : ""}` : "No active subscription"],
-            ].map(([l, v], i, arr) => (
-              <div key={l} style={{ display: "flex", padding: "10px 0", borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : "none" }}>
-                <span style={{ width: 180, fontSize: 13, fontWeight: 600, color: C.textLight, fontFamily: body }}>{l}</span>
-                <span style={{ fontSize: 13, color: C.textDark, fontFamily: body }}>{v}</span>
-              </div>
-            ))}
-          </>
-        )}
+        {[
+          ["Primary Contact", profile?.full_name],
+          ["Email", profile?.email],
+          ["Phone", profile?.phone || "—"],
+          ["Address", profile?.address || "—"],
+          ["Family Members", profile?.family_members || "—"],
+          ["Member Since", profile?.created_at ? new Date(profile.created_at).toLocaleDateString("en-AU", { month: "long", year: "numeric" }) : "—"],
+          ["Subscription", subActive ? `$120/year${subExpiry ? ` — renews ${subExpiry}` : ""}` : "No active subscription"],
+        ].map(([l, v], i, arr) => (
+          <div key={l} style={{ display: "flex", padding: "10px 0", borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : "none" }}>
+            <span style={{ width: 180, fontSize: 13, fontWeight: 600, color: C.textLight, fontFamily: body }}>{l}</span>
+            <span style={{ fontSize: 13, color: C.textDark, fontFamily: body }}>{v}</span>
+          </div>
+        ))}
       </div>
+
+      <p style={{ fontSize: 12, color: C.textMid, fontFamily: body, margin: "12px 0 24px", lineHeight: 1.6 }}>
+        If any of your details are incorrect, please contact an admin at{" "}
+        <a href="mailto:MacedonianCommunityOfBrisbane@gmail.com" style={{ color: C.maroon, textDecoration: "none" }}>
+          MacedonianCommunityOfBrisbane@gmail.com
+        </a>{" "}
+        to have them updated.
+      </p>
 
       {/* Subscription */}
       <div style={{ background: C.white, borderRadius: 0, border: `1px solid ${C.border}`, padding: 24 }}>

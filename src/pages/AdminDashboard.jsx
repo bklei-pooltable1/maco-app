@@ -289,7 +289,7 @@ function MembersTab({ members, addMember, updateMember }) {
   const [editMember, setEditMember] = useState(null);
 
   const [newMemberForm, setNewMemberForm] = useState({
-    firstName: "", lastName: "", email: "", phone: "", dateOfBirth: "", suburb: "",
+    firstName: "", lastName: "", email: "", phone: "", dateOfBirth: "", address: "", suburb: "",
     familySize: 1, planType: "Individual", paymentMethod: "Stripe", status: "active", billingCycle: "yearly",
   });
 
@@ -316,7 +316,7 @@ function MembersTab({ members, addMember, updateMember }) {
       renewalDate: new Date(Date.now() + 365 * 86400000).toISOString().split("T")[0],
     });
     setShowAdd(false);
-    setNewMemberForm({ firstName: "", lastName: "", email: "", phone: "", dateOfBirth: "", suburb: "", familySize: 1, planType: "Individual", paymentMethod: "Stripe", status: "active", billingCycle: "yearly" });
+    setNewMemberForm({ firstName: "", lastName: "", email: "", phone: "", dateOfBirth: "", address: "", suburb: "", familySize: 1, planType: "Individual", paymentMethod: "Stripe", status: "active", billingCycle: "yearly" });
   };
 
   const statusColor = { active: "green", expired: "gold", cancelled: "red" };
@@ -405,7 +405,7 @@ function MembersTab({ members, addMember, updateMember }) {
       {showAdd && (
         <Modal title="Add Member" onClose={() => setShowAdd(false)}>
           <div className="modal-grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-            {[["firstName", "First Name"], ["lastName", "Last Name"], ["email", "Email"], ["phone", "Phone"], ["dateOfBirth", "Date of Birth", "date"], ["suburb", "Suburb"]].map(([key, label, type = "text"]) => (
+            {[["firstName", "First Name"], ["lastName", "Last Name"], ["email", "Email"], ["phone", "Phone"], ["dateOfBirth", "Date of Birth", "date"], ["address", "Address"], ["suburb", "Suburb"]].map(([key, label, type = "text"]) => (
               <div key={key}>
                 <label style={labelStyle}>{label}</label>
                 <input type={type} style={inputStyle} value={newMemberForm[key]} onChange={e => setNewMemberForm(p => ({ ...p, [key]: e.target.value }))}/>
@@ -451,7 +451,7 @@ function MembersTab({ members, addMember, updateMember }) {
             ? (
               <div>
                 <div className="modal-grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-                  {[["firstName", "First Name"], ["lastName", "Last Name"], ["email", "Email"], ["phone", "Phone"], ["suburb", "Suburb"]].map(([key, label]) => (
+                  {[["firstName", "First Name"], ["lastName", "Last Name"], ["email", "Email"], ["phone", "Phone"], ["address", "Address"], ["suburb", "Suburb"]].map(([key, label]) => (
                     <div key={key}>
                       <label style={labelStyle}>{label}</label>
                       <input style={inputStyle} value={editMember[key] || ""} onChange={e => setEditMember(p => ({ ...p, [key]: e.target.value }))}/>
@@ -481,7 +481,7 @@ function MembersTab({ members, addMember, updateMember }) {
               <div>
                 {[
                   ["Email", viewMember.email], ["Phone", viewMember.phone], ["Date of Birth", viewMember.dateOfBirth],
-                  ["Suburb", viewMember.suburb], ["Plan", viewMember.planType], ["Family Size", viewMember.familySize],
+                  ["Address", viewMember.address || viewMember.suburb], ["Suburb", viewMember.suburb], ["Plan", viewMember.planType], ["Family Size", viewMember.familySize],
                   ["Join Date", viewMember.joinDate], ["Renewal Date", viewMember.renewalDate],
                   ["Status", viewMember.status], ["Payment", viewMember.paymentMethod], ["Billing", viewMember.billingCycle],
                 ].map(([k, v]) => (

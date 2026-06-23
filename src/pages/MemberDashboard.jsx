@@ -131,76 +131,63 @@ function OverviewSection({ member, events, setSection, notices }) {
 }
 
 // ─── My Profile ────────────────────────────────────────────────────────────────
-function ProfileSection({ member, updateMember }) {
+function ProfileSection({ member }) {
   const { t } = useLang();
-  const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({ ...member, address: member.address || member.suburb || "" });
-  const [saved, setSaved] = useState(false);
-
-  const save = () => {
-    updateMember(member.id, { ...form, fullName: `${form.firstName} ${form.lastName}` });
-    setEditing(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  };
-
-  const inputStyle = { width: "100%", padding: "9px 12px", border: `1px solid ${C.border}`, borderRadius: 0, fontSize: 13, fontFamily: body, color: C.textDark, background: C.white, boxSizing: "border-box" };
   const readStyle = { fontSize: 14, color: C.textDark, fontFamily: body, padding: "9px 0" };
 
   return (
-    <SectionCard title="My Profile" action={
-      editing
-        ? <div style={{ display: "flex", gap: 10 }}>
-            <button onClick={() => setEditing(false)} style={{ padding: "7px 16px", border: `1px solid ${C.border}`, background: "transparent", borderRadius: 0, fontSize: 12, cursor: "pointer", fontFamily: body }}>Cancel</button>
-            <button onClick={save} style={{ padding: "7px 16px", background: C.maroon, color: C.white, border: "none", borderRadius: 0, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: body }}>Save Changes</button>
-          </div>
-        : <button onClick={() => setEditing(true)} style={{ padding: "7px 16px", border: `1px solid ${C.border}`, background: "transparent", borderRadius: 0, fontSize: 12, cursor: "pointer", fontFamily: body, color: C.textDark }}>Edit Profile</button>
-    }>
-      {saved && <div style={{ background: C.greenLight, color: C.green, padding: "10px 14px", fontSize: 13, fontFamily: body, marginBottom: 16 }}>Profile updated successfully</div>}
-      <div className="profile-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 24px" }}>
-        {[
-          { label: "First Name", key: "firstName" },
-          { label: "Last Name", key: "lastName" },
-          { label: "Email", key: "email", type: "email" },
-          { label: "Phone", key: "phone" },
-          { label: "Date of Birth", key: "dateOfBirth", type: "date" },
-          { label: "Address", key: "address" },
-        ].map(({ label, key, type = "text" }) => (
-          <div key={key} style={{ borderBottom: `1px solid ${C.border}`, paddingBottom: 12, marginBottom: 12 }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: C.textLight, fontFamily: body, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>{label}</div>
-            {editing
-              ? <input type={type} style={inputStyle} value={form[key] || ""} onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))}/>
-              : <div style={readStyle}>{member[key] || "—"}</div>
-            }
-          </div>
-        ))}
-      </div>
-
-      <div style={{ marginTop: 16 }}>
-        <div style={{ fontSize: 11, fontWeight: 600, color: C.textLight, fontFamily: body, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>{t("profile.membershipTier")}</div>
-        <span style={{
-          display: "inline-block", padding: "2px 8px",
-          fontSize: 10, fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase",
-          color: C.white, background: TIERS[member.tier ?? "general"].color,
-          fontFamily: body, borderRadius: 0,
-        }}>
-          {t(`tiers.${member.tier ?? "general"}`)}
-        </span>
-      </div>
-
-      <div style={{ marginTop: 8 }}>
-        <div style={{ fontSize: 12, fontWeight: 600, color: C.textLight, fontFamily: body, marginBottom: 10, textTransform: "uppercase", letterSpacing: 0.5 }}>Family Members ({member.familyMembers?.length || 0})</div>
-        {(member.familyMembers || []).length === 0
-          ? <p style={{ fontSize: 13, color: C.textLight, fontFamily: body }}>No additional family members on this plan.</p>
-          : (member.familyMembers || []).map((fm, i) => (
-            <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "8px 14px", background: C.cream, marginBottom: 8, fontSize: 13, fontFamily: body }}>
-              <span style={{ color: C.textDark }}>{fm.name}</span>
-              <span style={{ color: C.textLight }}>Age {fm.age}</span>
+    <>
+      <SectionCard title="My Profile">
+        <div className="profile-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 24px" }}>
+          {[
+            { label: "First Name", key: "firstName" },
+            { label: "Last Name", key: "lastName" },
+            { label: "Email", key: "email" },
+            { label: "Phone", key: "phone" },
+            { label: "Date of Birth", key: "dateOfBirth" },
+            { label: "Address", key: "address" },
+          ].map(({ label, key }) => (
+            <div key={key} style={{ borderBottom: `1px solid ${C.border}`, paddingBottom: 12, marginBottom: 12 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: C.textLight, fontFamily: body, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>{label}</div>
+              <div style={readStyle}>{member[key] || (key === "address" ? member.suburb : null) || "—"}</div>
             </div>
-          ))
-        }
-      </div>
-    </SectionCard>
+          ))}
+        </div>
+
+        <div style={{ marginTop: 16 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: C.textLight, fontFamily: body, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>{t("profile.membershipTier")}</div>
+          <span style={{
+            display: "inline-block", padding: "2px 8px",
+            fontSize: 10, fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase",
+            color: C.white, background: TIERS[member.tier ?? "general"].color,
+            fontFamily: body, borderRadius: 0,
+          }}>
+            {t(`tiers.${member.tier ?? "general"}`)}
+          </span>
+        </div>
+
+        <div style={{ marginTop: 8 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: C.textLight, fontFamily: body, marginBottom: 10, textTransform: "uppercase", letterSpacing: 0.5 }}>Family Members ({member.familyMembers?.length || 0})</div>
+          {(member.familyMembers || []).length === 0
+            ? <p style={{ fontSize: 13, color: C.textLight, fontFamily: body }}>No additional family members on this plan.</p>
+            : (member.familyMembers || []).map((fm, i) => (
+              <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "8px 14px", background: C.cream, marginBottom: 8, fontSize: 13, fontFamily: body }}>
+                <span style={{ color: C.textDark }}>{fm.name}</span>
+                <span style={{ color: C.textLight }}>{fm.dateOfBirth || ""}</span>
+              </div>
+            ))
+          }
+        </div>
+      </SectionCard>
+
+      <p style={{ fontSize: 12, color: C.textMid, fontFamily: body, marginTop: -16, marginBottom: 24, lineHeight: 1.6 }}>
+        If any of your details are incorrect, please contact an admin at{" "}
+        <a href="mailto:MacedonianCommunityOfBrisbane@gmail.com" style={{ color: C.maroon, textDecoration: "none" }}>
+          MacedonianCommunityOfBrisbane@gmail.com
+        </a>{" "}
+        to have them updated.
+      </p>
+    </>
   );
 }
 
@@ -818,7 +805,7 @@ export default function MemberDashboard() {
         {/* Content */}
         <div className="member-dashboard-content" style={{ flex: 1, padding: 28, maxWidth: 900 }}>
           {section === "overview" && <OverviewSection member={member} events={visibleEvents} setSection={setSection} notices={notices}/>}
-          {section === "profile" && <ProfileSection member={member} updateMember={updateMember}/>}
+          {section === "profile" && <ProfileSection member={member}/>}
           {section === "membership" && <MembershipSection member={member} updateMember={updateMember}/>}
           {section === "calendar" && <CalendarSection events={visibleEvents} rsvps={rsvps} toggleRsvp={toggleRsvp}/>}
           {section === "notices" && <NoticeBoardSection notices={notices}/>}
