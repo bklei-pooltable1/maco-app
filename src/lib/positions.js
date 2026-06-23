@@ -4,6 +4,7 @@ export const POSITIONS = [
   "Secretary",
   "Treasurer",
   "Committee Member",
+  "Admin",
 ];
 
 export function isAdmin(member) {

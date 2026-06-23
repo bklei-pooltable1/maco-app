@@ -284,14 +284,8 @@ function MembersTab({ members, addMember, updateMember }) {
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterPlan, setFilterPlan] = useState("all");
   const [filterSuburb, setFilterSuburb] = useState("all");
-  const [showAdd, setShowAdd] = useState(false);
   const [viewMember, setViewMember] = useState(null);
   const [editMember, setEditMember] = useState(null);
-
-  const [newMemberForm, setNewMemberForm] = useState({
-    firstName: "", lastName: "", email: "", phone: "", dateOfBirth: "", address: "", suburb: "",
-    familySize: 1, planType: "Individual", paymentMethod: "Stripe", status: "active", billingCycle: "yearly",
-  });
 
   const suburbs = [...new Set(members.map(m => m.suburb))].sort();
   const plans = [...new Set(members.map(m => m.planType))].sort();
@@ -304,20 +298,6 @@ function MembersTab({ members, addMember, updateMember }) {
     const matchSuburb = filterSuburb === "all" || m.suburb === filterSuburb;
     return matchSearch && matchStatus && matchPlan && matchSuburb;
   });
-
-  const handleAddMember = () => {
-    const pricing = getPricing(newMemberForm.familySize);
-    addMember({
-      ...newMemberForm,
-      fullName: `${newMemberForm.firstName} ${newMemberForm.lastName}`,
-      familyMembers: [],
-      yearlyPrice: pricing.yearlyPrice,
-      monthlyPrice: pricing.monthlyPrice,
-      renewalDate: new Date(Date.now() + 365 * 86400000).toISOString().split("T")[0],
-    });
-    setShowAdd(false);
-    setNewMemberForm({ firstName: "", lastName: "", email: "", phone: "", dateOfBirth: "", address: "", suburb: "", familySize: 1, planType: "Individual", paymentMethod: "Stripe", status: "active", billingCycle: "yearly" });
-  };
 
   const statusColor = { active: "green", expired: "gold", cancelled: "red" };
 
@@ -334,14 +314,9 @@ function MembersTab({ members, addMember, updateMember }) {
     <div>
       <div className="admin-member-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <h2 style={{ fontFamily: display, fontSize: 20, color: C.textDark, margin: 0, letterSpacing: 0.5 }}>Member Directory</h2>
-        <div className="admin-member-actions" style={{ display: "flex", gap: 10 }}>
-          <button onClick={exportCSV} style={{ padding: "9px 18px", border: `1px solid ${C.border}`, background: C.white, borderRadius: 0, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: body, color: C.textMid }}>
-            ↓ Export CSV
-          </button>
-          <button onClick={() => setShowAdd(true)} style={{ padding: "9px 18px", background: C.maroon, color: C.white, border: "none", borderRadius: 0, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: body, display: "flex", alignItems: "center", gap: 6 }}>
-            <PlusIcon/> Add Member
-          </button>
-        </div>
+        <button onClick={exportCSV} style={{ padding: "9px 18px", border: `1px solid ${C.border}`, background: C.white, borderRadius: 0, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: body, color: C.textMid }}>
+          ↓ Export CSV
+        </button>
       </div>
 
       {/* Filters */}
@@ -400,49 +375,6 @@ function MembersTab({ members, addMember, updateMember }) {
         {filtered.length === 0 && <div style={{ padding: 24, textAlign: "center", color: C.textLight, fontSize: 13, fontFamily: body }}>No members match your filters.</div>}
       </div>
       <div style={{ fontSize: 12, color: C.textLight, fontFamily: body, marginTop: 8 }}>Showing {filtered.length} of {members.length} members</div>
-
-      {/* Add Member Modal */}
-      {showAdd && (
-        <Modal title="Add Member" onClose={() => setShowAdd(false)}>
-          <div className="modal-grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-            {[["firstName", "First Name"], ["lastName", "Last Name"], ["email", "Email"], ["phone", "Phone"], ["dateOfBirth", "Date of Birth", "date"], ["address", "Address"], ["suburb", "Suburb"]].map(([key, label, type = "text"]) => (
-              <div key={key}>
-                <label style={labelStyle}>{label}</label>
-                <input type={type} style={inputStyle} value={newMemberForm[key]} onChange={e => setNewMemberForm(p => ({ ...p, [key]: e.target.value }))}/>
-              </div>
-            ))}
-            <div>
-              <label style={labelStyle}>Family Size</label>
-              <input type="number" style={inputStyle} value={newMemberForm.familySize} min={1} max={10} onChange={e => { const n = parseInt(e.target.value) || 1; setNewMemberForm(p => ({ ...p, familySize: n, planType: getPricing(n).label })); }}/>
-            </div>
-            <div>
-              <label style={labelStyle}>Payment Method</label>
-              <select style={inputStyle} value={newMemberForm.paymentMethod} onChange={e => setNewMemberForm(p => ({ ...p, paymentMethod: e.target.value }))}>
-                <option>Stripe</option><option>Bank Transfer</option><option>Cash</option>
-              </select>
-            </div>
-            <div>
-              <label style={labelStyle}>Status</label>
-              <select style={inputStyle} value={newMemberForm.status} onChange={e => setNewMemberForm(p => ({ ...p, status: e.target.value }))}>
-                <option value="active">Active</option><option value="expired">Expired</option>
-              </select>
-            </div>
-            <div>
-              <label style={labelStyle}>Billing Cycle</label>
-              <select style={inputStyle} value={newMemberForm.billingCycle} onChange={e => setNewMemberForm(p => ({ ...p, billingCycle: e.target.value }))}>
-                <option value="yearly">Yearly</option><option value="monthly">Monthly</option>
-              </select>
-            </div>
-          </div>
-          <div style={{ marginTop: 8, padding: "10px 14px", background: C.goldMuted, fontSize: 13, fontFamily: body }}>
-            Plan: <strong>{getPricing(newMemberForm.familySize).label}</strong> — ${getPricing(newMemberForm.familySize).yearlyPrice}/yr or ${getPricing(newMemberForm.familySize).monthlyPrice}/mo
-          </div>
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 20 }}>
-            <button onClick={() => setShowAdd(false)} style={{ padding: "10px 20px", border: `1px solid ${C.border}`, background: "transparent", borderRadius: 0, fontSize: 13, cursor: "pointer", fontFamily: body }}>Cancel</button>
-            <button onClick={handleAddMember} style={{ padding: "10px 24px", background: C.maroon, color: C.white, border: "none", borderRadius: 0, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: body }}>Add Member</button>
-          </div>
-        </Modal>
-      )}
 
       {/* View/Edit Member Modal */}
       {viewMember && (
