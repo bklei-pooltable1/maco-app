@@ -724,7 +724,7 @@ const NAV_ITEMS = [
   { key: "membership", icon: "💳", label: "Membership" },
   { key: "calendar", icon: <CalIcon/>, label: "Calendar" },
   { key: "notices", icon: <BellIcon/>, label: "Notice Board" },
-  { key: "hallhire", icon: <BuildingIcon/>, label: "Hall Hire" },
+  // { key: "hallhire", icon: <BuildingIcon/>, label: "Hall Hire" }, // hidden — re-enable to restore member hall hire tab
   { key: "help", icon: <HelpIcon/>, label: "Help" },
   { key: "constitution", icon: <DocumentIcon/>, label: "Constitution" },
   { key: "notifications", icon: <BellIcon/>, label: "Notifications" },
@@ -811,7 +811,7 @@ export default function MemberDashboard() {
           {section === "membership" && <MembershipSection member={member} updateMember={updateMember}/>}
           {section === "calendar" && <CalendarSection events={visibleEvents} rsvps={rsvps} toggleRsvp={toggleRsvp}/>}
           {section === "notices" && <NoticeBoardSection notices={notices}/>}
-          {section === "hallhire" && <HallHireSection/>}
+          {/* section === "hallhire" && <HallHireSection/> — hidden, re-enable with nav item above */}
           {section === "help" && <HelpSection members={members}/>}
           {section === "constitution" && <ConstitutionSection/>}
           {section === "notifications" && <NotificationsSection member={member} updateNotificationPrefs={updateNotificationPrefs}/>}
