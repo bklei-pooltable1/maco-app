@@ -4,7 +4,13 @@
       "Bash(npm run:*)",
       "Bash(npm install *)",
       "Bash(node *)",
-      "Bash(claude update *)"
+      "Bash(claude update *)",
+      "Bash(vercel inspect *)",
+      "Skill(run)",
+      "Bash(npx playwright *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)"
     ]
   }
 }

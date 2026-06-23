@@ -3,8 +3,44 @@ import { useNavigate, Link } from "react-router-dom";
 import { C, body, display } from "../theme";
 import { SunIcon, CheckIcon } from "../components/ui/Icons";
 import { useDemo } from "../context/DemoContext";
-import { useLang } from "../context/LangContext";
 import { getPricing } from "../data/mockData";
+
+// Mock address list — replace fetchAddressSuggestions body with a Google Places Autocomplete call to go live
+const MOCK_ADDRESSES = [
+  "12 River Road, New Farm QLD 4005",
+  "34 Brunswick Street, New Farm QLD 4005",
+  "5 James Street, New Farm QLD 4005",
+  "88 Hamilton Road, Hamilton QLD 4007",
+  "14 Racecourse Road, Hamilton QLD 4007",
+  "27 Ascot Avenue, Ascot QLD 4007",
+  "3 Lancaster Road, Ascot QLD 4007",
+  "19 Vulture Street, Woolloongabba QLD 4102",
+  "42 Logan Road, Woolloongabba QLD 4102",
+  "56 Clayfield Avenue, Clayfield QLD 4011",
+  "11 Bonney Avenue, Clayfield QLD 4011",
+  "1 Macintosh Drive, North Lakes QLD 4509",
+  "23 Endeavour Boulevard, North Lakes QLD 4509",
+  "8 Graceville Road, Graceville QLD 4075",
+  "31 Hawthorne Road, Hawthorne QLD 4171",
+  "67 Indooroopilly Road, Indooroopilly QLD 4068",
+  "22 Bulimba Street, Bulimba QLD 4171",
+  "5 Toowong Road, Toowong QLD 4066",
+  "45 Wickham Terrace, Spring Hill QLD 4000",
+  "15 Wilston Road, Wilston QLD 4051",
+];
+
+function fetchAddressSuggestions(query) {
+  if (!query || query.length < 3) return [];
+  const q = query.toLowerCase();
+  return MOCK_ADDRESSES.filter(a => a.toLowerCase().includes(q)).slice(0, 5);
+}
+
+function extractSuburb(address) {
+  if (!address) return "";
+  const parts = address.split(",");
+  if (parts.length < 2) return address.trim();
+  return parts[1].trim().replace(/\s+QLD\s+\d{4}$/, "").trim();
+}
 
 const STEPS = ["Account", "Family", "Plan", "Payment", "Done"];
 
@@ -114,35 +150,80 @@ function Step1({ data, onChange, onNext }) {
 
 // ─── Step 2: Family Details ───────────────────────────────────────────────────
 function Step2({ data, onChange, onNext, onBack }) {
-  const { t } = useLang();
-  const addMember = () => onChange("familyMembers", [...data.familyMembers, { name: "", dateOfBirth: "", type: "adult", ageBand: "" }]);
+  const [addressQuery, setAddressQuery] = useState(data.address || "");
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  const addMember = () => onChange("familyMembers", [...data.familyMembers, { name: "", dateOfBirth: "" }]);
   const removeMember = (i) => onChange("familyMembers", data.familyMembers.filter((_, idx) => idx !== i));
   const updateFamilyMember = (i, field, val) => {
     const updated = data.familyMembers.map((m, idx) => idx === i ? { ...m, [field]: val } : m);
     onChange("familyMembers", updated);
   };
-  const setMemberType = (i, type) => {
-    const reset = type === "child" ? { type: "child", dateOfBirth: "" } : { type: "adult", ageBand: "" };
-    const updated = data.familyMembers.map((m, idx) => idx === i ? { ...m, ...reset } : m);
-    onChange("familyMembers", updated);
-  };
   const totalSize = 1 + data.familyMembers.length;
+
+  const handleAddressChange = (val) => {
+    setAddressQuery(val);
+    onChange("address", val);
+    setSuggestions(fetchAddressSuggestions(val));
+    setShowSuggestions(true);
+  };
+
+  const selectAddress = (addr) => {
+    setAddressQuery(addr);
+    onChange("address", addr);
+    setSuggestions([]);
+    setShowSuggestions(false);
+  };
 
   return (
     <div>
       <h2 style={{ fontFamily: display, fontSize: 22, color: C.textDark, marginBottom: 6, letterSpacing: 1 }}>Family Details</h2>
       <p style={{ fontSize: 13, color: C.textMid, marginBottom: 28, fontFamily: body }}>Tell us about your household so we can set up your membership correctly.</p>
 
-      <div style={{ marginBottom: 20 }}>
-        <label style={labelStyle}>Your Suburb / Area *</label>
-        <input style={inputStyle} value={data.suburb} onChange={e => onChange("suburb", e.target.value)} placeholder="e.g. New Farm, Hamilton, Ascot"/>
+      <div style={{ marginBottom: 20, position: "relative" }}>
+        <label style={labelStyle}>Street Address *</label>
+        <input
+          style={inputStyle}
+          value={addressQuery}
+          onChange={e => handleAddressChange(e.target.value)}
+          onFocus={() => addressQuery.length >= 3 && setShowSuggestions(true)}
+          onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+          placeholder="e.g. 123 Macintosh Drive, North Lakes"
+          autoComplete="off"
+        />
+        {showSuggestions && suggestions.length > 0 && (
+          <div style={{
+            position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100,
+            background: C.white, border: `1px solid ${C.border}`, borderTop: "none",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+          }}>
+            {suggestions.map((addr, i) => (
+              <button
+                key={i}
+                type="button"
+                onMouseDown={() => selectAddress(addr)}
+                style={{
+                  display: "block", width: "100%", padding: "10px 12px",
+                  background: "none", border: "none",
+                  borderBottom: i < suggestions.length - 1 ? `1px solid ${C.border}` : "none",
+                  textAlign: "left", cursor: "pointer", fontSize: 13, fontFamily: body, color: C.textDark,
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = C.cream}
+                onMouseLeave={e => e.currentTarget.style.background = "none"}
+              >
+                {addr}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div style={{ marginBottom: 20 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
           <div>
             <label style={{ ...labelStyle, marginBottom: 2 }}>Additional Family Members</label>
-            <span style={{ fontSize: 11, color: C.textLight, fontFamily: body }}>Add others in your household who will be included in your membership</span>
+            <span style={{ fontSize: 11, color: C.textLight, fontFamily: body }}>Add other adults in your household who will be included in your membership</span>
           </div>
           <button onClick={addMember} style={{ padding: "7px 14px", background: C.cream, border: `1px solid ${C.border}`, borderRadius: 0, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: body, color: C.textDark }}>
             + Add Member
@@ -155,76 +236,39 @@ function Step2({ data, onChange, onNext, onBack }) {
           </div>
         )}
 
-        {data.familyMembers.map((fm, i) => {
-          const memberType = fm.type || "adult";
-          return (
-            <div key={i} style={{ border: `1px solid ${C.border}`, padding: "10px 12px", marginBottom: 10, background: C.white }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                <div style={{ display: "flex", border: `1px solid ${C.border}`, overflow: "hidden" }}>
-                  {["adult", "child"].map((type) => (
-                    <button
-                      key={type}
-                      type="button"
-                      onClick={() => setMemberType(i, type)}
-                      style={{
-                        padding: "5px 14px", border: "none", borderRadius: 0, cursor: "pointer",
-                        fontFamily: body, fontWeight: 600, fontSize: 11, letterSpacing: 0.5,
-                        background: memberType === type ? C.maroon : C.white,
-                        color: memberType === type ? C.white : C.textMid,
-                      }}
-                    >
-                      {type === "adult" ? t("signup.memberTypeAdult") : t("signup.memberTypeChild")}
-                    </button>
-                  ))}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => removeMember(i)}
-                  style={{ padding: "5px 10px", background: "rgba(192,57,43,0.08)", border: "none", borderRadius: 0, cursor: "pointer", color: C.red, fontSize: 16, fontWeight: 700 }}
-                >×</button>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 160px", gap: 10 }}>
-                <input
-                  style={inputStyle}
-                  value={fm.name}
-                  onChange={e => updateFamilyMember(i, "name", e.target.value)}
-                  placeholder={memberType === "child" ? "Child's first name" : `Member ${i + 2} full name`}
-                />
-                {memberType === "adult" ? (
-                  <input
-                    style={inputStyle}
-                    type="date"
-                    value={fm.dateOfBirth || ""}
-                    onChange={e => updateFamilyMember(i, "dateOfBirth", e.target.value)}
-                    title="Date of Birth"
-                  />
-                ) : (
-                  <select
-                    style={inputStyle}
-                    value={fm.ageBand || ""}
-                    onChange={e => updateFamilyMember(i, "ageBand", e.target.value)}
-                  >
-                    <option value="">{t("signup.ageBand")}</option>
-                    <option value="Under 5">{t("signup.ageBandUnder5")}</option>
-                    <option value="5–12">{t("signup.ageBand5to12")}</option>
-                    <option value="13–17">{t("signup.ageBand13to17")}</option>
-                  </select>
-                )}
-              </div>
+        {data.familyMembers.map((fm, i) => (
+          <div key={i} style={{ border: `1px solid ${C.border}`, padding: "10px 12px", marginBottom: 10, background: C.white }}>
+            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+              <button
+                type="button"
+                onClick={() => removeMember(i)}
+                style={{ padding: "5px 10px", background: "rgba(192,57,43,0.08)", border: "none", borderRadius: 0, cursor: "pointer", color: C.red, fontSize: 16, fontWeight: 700 }}
+              >×</button>
             </div>
-          );
-        })}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 160px", gap: 10 }}>
+              <input
+                style={inputStyle}
+                value={fm.name}
+                onChange={e => updateFamilyMember(i, "name", e.target.value)}
+                placeholder={`Member ${i + 2} full name`}
+              />
+              <input
+                style={inputStyle}
+                type="date"
+                value={fm.dateOfBirth || ""}
+                onChange={e => updateFamilyMember(i, "dateOfBirth", e.target.value)}
+                title="Date of Birth"
+              />
+            </div>
+          </div>
+        ))}
       </div>
 
       <div style={{ padding: "12px 16px", background: C.goldMuted, border: `1px solid ${C.gold}`, fontFamily: body }}>
         <span style={{ fontSize: 13, fontWeight: 600, color: C.textDark }}>Total household: </span>
         <span style={{ fontSize: 13, color: C.textMid }}>{totalSize} {totalSize === 1 ? "person" : "people"}</span>
-        <span style={{ fontSize: 12, color: C.textLight, marginLeft: 12 }}>({totalSize === 1 ? "Individual" : totalSize === 2 ? "Couple" : `Family`} plan)</span>
+        <span style={{ fontSize: 12, color: C.textLight, marginLeft: 12 }}>({totalSize === 1 ? "Individual" : totalSize === 2 ? "Couple" : "Family"} plan)</span>
       </div>
-
-      <p style={{ fontSize: 12, color: C.textMid, fontFamily: body, lineHeight: 1.6, marginTop: 16, marginBottom: 0 }}>
-        {t("signup.privacyNotice")}
-      </p>
 
       <div className="signup-step-nav" style={{ display: "flex", justifyContent: "space-between", marginTop: 28 }}>
         <button onClick={onBack} style={{ padding: "12px 28px", background: "transparent", border: `1px solid ${C.border}`, borderRadius: 0, fontWeight: 600, fontSize: 13, cursor: "pointer", fontFamily: body, color: C.textMid }}>
@@ -469,7 +513,7 @@ export default function SignUp() {
   const [step, setStep] = useState(0);
   const [data, setData] = useState({
     firstName: "", lastName: "", email: "", password: "", phone: "", dateOfBirth: "",
-    suburb: "", familyMembers: [],
+    address: "", familyMembers: [],
     billingCycle: "yearly", pricing: null,
   });
 
@@ -485,13 +529,10 @@ export default function SignUp() {
       email: data.email,
       phone: data.phone,
       dateOfBirth: data.dateOfBirth,
-      suburb: data.suburb,
+      address: data.address,
+      suburb: extractSuburb(data.address),
       familySize,
-      familyMembers: data.familyMembers.map((fm) =>
-        (fm.type || "adult") === "child"
-          ? { name: fm.name, type: "child", ageBand: fm.ageBand }
-          : fm
-      ),
+      familyMembers: data.familyMembers,
       planType: pricing.label,
       yearlyPrice: pricing.yearlyPrice,
       monthlyPrice: pricing.monthlyPrice,

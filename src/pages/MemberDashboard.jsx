@@ -134,7 +134,7 @@ function OverviewSection({ member, events, setSection, notices }) {
 function ProfileSection({ member, updateMember }) {
   const { t } = useLang();
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({ ...member });
+  const [form, setForm] = useState({ ...member, address: member.address || member.suburb || "" });
   const [saved, setSaved] = useState(false);
 
   const save = () => {
@@ -164,7 +164,7 @@ function ProfileSection({ member, updateMember }) {
           { label: "Email", key: "email", type: "email" },
           { label: "Phone", key: "phone" },
           { label: "Date of Birth", key: "dateOfBirth", type: "date" },
-          { label: "Suburb", key: "suburb" },
+          { label: "Address", key: "address" },
         ].map(({ label, key, type = "text" }) => (
           <div key={key} style={{ borderBottom: `1px solid ${C.border}`, paddingBottom: 12, marginBottom: 12 }}>
             <div style={{ fontSize: 11, fontWeight: 600, color: C.textLight, fontFamily: body, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>{label}</div>
