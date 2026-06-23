@@ -1310,7 +1310,7 @@ function AdminNotificationsTab({ adminNotificationPrefs, updateAdminNotification
       </h2>
       <div style={{ background: C.white, border: `1px solid ${C.border}`, padding: 24, maxWidth: 480 }}>
         <NotificationPrefs
-          categories={[{ key: "hallHire" }, { key: "signups" }, { key: "payments" }]}
+          categories={[{ key: "hallHire" }, { key: "signups" }, { key: "payments" }, { key: "events" }]}
           prefs={adminNotificationPrefs}
           onToggle={(cat, channel, val) => updateAdminNotificationPrefs(cat, channel, val)}
         />

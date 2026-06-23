@@ -512,9 +512,10 @@ export const DEMO_MEMBER = {
 export const DEMO_ADMIN = INITIAL_MEMBERS.find(m => m.id === "m11");
 
 export const INITIAL_ADMIN_NOTIFICATION_PREFS = {
-  hallHire: { email: true, sms: true },
-  signups:  { email: true, sms: false },
-  payments: { email: true, sms: false },
+  hallHire: { email: true },
+  signups:  { email: true },
+  payments: { email: true },
+  events:   { email: true },
 };
 
 export const INITIAL_NOTIFICATIONS = [

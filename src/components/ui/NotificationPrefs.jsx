@@ -59,14 +59,11 @@ export default function NotificationPrefs({ categories, prefs, onToggle, contact
         <div style={{ width: 80, textAlign: "center", fontSize: 11, fontWeight: 700, color: C.textLight, textTransform: "uppercase", letterSpacing: 0.5, fontFamily: body }}>
           {t("notifications.email")}
         </div>
-        <div style={{ width: 80, textAlign: "center", fontSize: 11, fontWeight: 700, color: C.textLight, textTransform: "uppercase", letterSpacing: 0.5, fontFamily: body }}>
-          {t("notifications.sms")}
-        </div>
       </div>
 
       {categories.map(({ key, labelKey }) => {
         const label = t(labelKey ?? `notifications.${key}`);
-        const catPrefs = prefs?.[key] ?? { email: true, sms: false };
+        const catPrefs = prefs?.[key] ?? { email: true };
         return (
           <div
             key={key}
@@ -78,9 +75,6 @@ export default function NotificationPrefs({ categories, prefs, onToggle, contact
             </div>
             <div style={{ width: 80, display: "flex", justifyContent: "center" }}>
               <SquareToggle active={catPrefs.email} onChange={(val) => onToggle(key, "email", val)} />
-            </div>
-            <div style={{ width: 80, display: "flex", justifyContent: "center" }}>
-              <SquareToggle active={catPrefs.sms} onChange={(val) => onToggle(key, "sms", val)} />
             </div>
           </div>
         );
